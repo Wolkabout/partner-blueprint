@@ -76,11 +76,10 @@ This class provides the connection to the WolkAbout IoT Platform by implementing
 
 * :samp:`device`: Contains device key, device password and actuator references
 * :samp:`qos`: Quality of Service for MQTT connection (0,1,2), defaults to 0
-* :samp:`host`: The address of the WolkAbout IoT Platform, defaults to the Demo instance
-* :samp:`port`: The port to which to send messages, defaults to 1883
+
     """
 
-    def __init__(self, device, qos=0, host="api-demo.wolkabout.com", port=1883):
+    def __init__(self, device, host, port, qos=0):
         self.device = device
         self.qos = qos
         self.host = host
@@ -570,6 +569,8 @@ Wolk class
 This class is a wrapper for the WolkCore class that passes the Zerynth compatible implementation of interfaces to the constructor
 
 * :samp:`device`: Contains device key and password, and actuator references
+* :samp:`host`: The address of the WolkAbout IoT Platform, defaults to the Demo instance
+* :samp:`port`: The port to which to send messages, defaults to 1883
 * :samp:`actuation_handler`: Implementation of the :samp:`ActuationHandler` interface
 * :samp:`actuator_status_provider`: Implementation of the :samp:`ActuatorStatusProvider` interface
 * :samp:`outbound_message_queue`: Implementation of the :samp:`OutboundMessageQueue` interface
@@ -579,14 +580,14 @@ This class is a wrapper for the WolkCore class that passes the Zerynth compatibl
 
     """
 
-    def __init__(self, device, actuation_handler=None, actuator_status_provider=None,
+    def __init__(self, device, host="api-demo.wolkabout.com", port=1883, actuation_handler=None, actuator_status_provider=None,
                  outbound_message_queue=ZerynthOutboundMessageQueue(30),
                  configuration_handler=None, configuration_provider=None,
                  keep_alive_enabled=True):
         self.device = device
         self.outbound_message_factory = ZerynthOutboundMessageFactory(device.key)
         self.outbound_message_queue = outbound_message_queue
-        self.connectivity_service = ZerynthMQTTConnectivityService(device)
+        self.connectivity_service = ZerynthMQTTConnectivityService(device, host, port)
         self.deserializer = ZerynthInboundMessageDeserializer()
 
         if device.actuator_references and (actuation_handler is None or actuator_status_provider is None):
