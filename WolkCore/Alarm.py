@@ -22,15 +22,15 @@ class Alarm:
         Alarm Class
     """
 
-    def __init__(self, reference, message, timestamp=None):
+    def __init__(self, reference, active, timestamp=None):
         """
         :param reference: Alarm reference
         :type reference: str
-        :param message: Description of the event that occurred
-        :type message: str
+        :param active: Current state of the alarm
+        :type active: str
         :param timestamp: (optional) Unix timestamp - if not provided, platform will assign one upon reception
         :type timestamp: int
         """
         self.reference = reference
-        self.message = message
+        self.active = active
         self.timestamp = timestamp

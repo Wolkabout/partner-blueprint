@@ -124,17 +124,17 @@ class WolkCore:
         )
         self.outbound_message_queue.put(outbound_message)
 
-    def add_alarm(self, reference, message, timestamp=None):
+    def add_alarm(self, reference, active, timestamp=None):
         """
         Publish an alarm to the platform
         :param reference: The reference of the alarm
         :type reference: str
-        :param message: Description of the event that occurred
-        :type message: str
+        :param active: Current state of the alarm
+        :type active: bool
         :param timestamp: (optional) Unix timestamp - if not provided, platform will assign one upon reception
         :type timestamp: int
         """
-        alarm = Alarm.Alarm(reference, message, timestamp)
+        alarm = Alarm.Alarm(reference, active, timestamp)
         outbound_message = self.outbound_message_factory.make_from_alarm(alarm)
         self.outbound_message_queue.put(outbound_message)
 
@@ -298,7 +298,7 @@ class WolkCore:
                 configuration.command
                 == ConfigurationCommandType.CONFIGURATION_COMMAND_TYPE_SET
             ):
-                self.configuration_handler.handle_configuration(configuration)
+                self.configuration_handler.handle_configuration(configuration.value)
                 self.publish_configuration()
 
             elif (
