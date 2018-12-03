@@ -149,7 +149,6 @@ Raises an exception if the connection failed.
             self.topics.append(
                 ["configurations/commands/" + self.device.key, 0]
             )
-            print(self.device.actuator_references)
             if self.device.actuator_references:
                 for actuator_reference in self.device.actuator_references:
                     topic = [
@@ -341,10 +340,10 @@ Serializes the :samp:`alarm` to be sent to the WolkAbout IoT Platform
 
 * :samp:`alarm`: Alarm event to be serialized
         """
-        if alarm.value is True:
-            alarm.value = "true"
-        elif alarm.value is False:
-            alarm.value = "false"
+        if alarm.active is True:
+            alarm.active = "true"
+        elif alarm.active is False:
+            alarm.active = "false"
         if alarm.timestamp is None:
             return OutboundMessage.OutboundMessage(
                 "events/" + self.device_key + "/" + alarm.reference,

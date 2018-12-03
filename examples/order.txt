@@ -1,3 +1,4 @@
 #WolkAbout
     ##IoT
         Controlled_publish_period
+        Full_feature_set
