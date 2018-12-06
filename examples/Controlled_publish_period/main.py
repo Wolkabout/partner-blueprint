@@ -15,6 +15,7 @@
 import streams
 from wolkabout.iot import iot
 from wireless import wifi
+
 # uncomment one of the following lines depending on used board(e.g. Particle Photon, esp8266 or esp32 based board)
 # from broadcom.bcm43362 import bcm43362 as wifi_driver
 # from espressif.esp32net import esp32wifi as wifi_driver
@@ -33,6 +34,9 @@ device_password = "some_password"
 
 publish_period_milliseconds = 5000
 streams.serial()
+
+# Enable debug printing by setting flag to True
+iot.debug_mode = False
 
 
 # Connect to WiFi network

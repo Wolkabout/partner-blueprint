@@ -298,7 +298,7 @@ class WolkCore:
                 configuration.command
                 == ConfigurationCommandType.CONFIGURATION_COMMAND_TYPE_SET
             ):
-                self.configuration_handler.handle_configuration(configuration.value)
+                self.configuration_handler.handle_configuration(configuration.values)
                 self.publish_configuration()
 
             elif (

@@ -36,6 +36,9 @@ actuator_references = ["SW", "SL"]
 publish_period_milliseconds = 5000
 streams.serial()
 
+# Enable debug printing by setting flag to True
+iot.debug_mode = False
+
 
 class ActuatorSimulator:
     def __init__(self, value):
@@ -115,16 +118,17 @@ except Exception as e:
     print("Something went wrong while creating the device: ", e)
 
 try:
-    wolk = iot.Wolk(device,
-                    host="api-demo.wolkabout.com",
-                    port=1883,
-                    actuation_handler=ActuationHandlerImpl(),
-                    actuator_status_provider=ActuatorStatusProviderImpl(),
-                    outbound_message_queue=iot.ZerynthOutboundMessageQueue(200),
-                    configuration_handler=ConfigurationHandlerImpl(),
-                    configuration_provider=ConfigurationProviderImpl(),
-                    keep_alive_enabled=True
-                    )
+    wolk = iot.Wolk(
+        device,
+        host="api-demo.wolkabout.com",
+        port=1883,
+        actuation_handler=ActuationHandlerImpl(),
+        actuator_status_provider=ActuatorStatusProviderImpl(),
+        outbound_message_queue=iot.ZerynthOutboundMessageQueue(200),
+        configuration_handler=ConfigurationHandlerImpl(),
+        configuration_provider=ConfigurationProviderImpl(),
+        keep_alive_enabled=True,
+    )
 except Exception as e:
     print("Something went wrong while creating the Wolk instance: ", e)
 
@@ -154,11 +158,17 @@ try:
         else:
             wolk.add_alarm("HH", False)
 
-        print("Publishing readings" +
-              " T: " + str(temperature) +
-              " P: " + str(pressure) +
-              " H: " + str(humidity) +
-              " ACL: " + str(acceleration))
+        print(
+            "Publishing readings"
+            + " T: "
+            + str(temperature)
+            + " P: "
+            + str(pressure)
+            + " H: "
+            + str(humidity)
+            + " ACL: "
+            + str(acceleration)
+        )
 
         # Adds a sensor reading to the queue
         wolk.add_sensor_reading("T", temperature)

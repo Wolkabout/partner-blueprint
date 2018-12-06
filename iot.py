@@ -57,6 +57,14 @@ def tuple(mlist):
     pass
 
 
+debug_mode = False
+
+
+def print_d(*args):
+    if debug_mode:
+        print(*args)
+
+
 class ZerynthMQTTConnectivityService(ConnectivityService.ConnectivityService):
     """
 
@@ -83,6 +91,12 @@ This class provides the connection to the WolkAbout IoT Platform by implementing
     """
 
     def __init__(self, device, host, port, qos=0):
+        print_d("[D] Connectivity details:")
+        print_d("[D] Device key - " + str(device.key))
+        print_d("[D] Device password - " + str(device.password))
+        print_d("[D] Host - " + str(host))
+        print_d("[D] Port - " + str(port))
+        print_d("[D] Quality of Service - " + str(qos))
         self.device = device
         self.qos = qos
         self.host = host
@@ -113,6 +127,9 @@ Method that serializes inbound messages and passes them to the inbound message l
         if "message" in data:
             channel = data["message"].topic
             payload = data["message"].payload
+            print_d(
+                "[D] Received message - Channel: " + channel + " Payload: " + payload
+            )
             message = InboundMessage.InboundMessage(channel, payload)
             self.inbound_message_listener(message)
 
@@ -128,27 +145,19 @@ Raises an exception if the connection failed.
         if self.connected:
             return
 
-        self.client = mqtt.Client(
-            client_id=self.device.key, clean_session=True
-        )
+        self.client = mqtt.Client(client_id=self.device.key, clean_session=True)
         self.client.set_username_pw(self.device.key, self.device.password)
-        self.client.set_will(
-            "lastwill/" + self.device.key, "Gone offline", 2, False
-        )
+        self.client.set_will("lastwill/" + self.device.key, "Gone offline", 2, False)
 
         try:
             self.client.connect(self.host, keepalive=60, port=self.port)
             self.topics = []
-            self.topics.append(
-                ["service/commands/firmware/" + self.device.key, 0]
-            )
+            self.topics.append(["service/commands/firmware/" + self.device.key, 0])
             self.topics.append(["service/commands/file/" + self.device.key, 0])
             self.topics.append(["service/commands/url/" + self.device.key, 0])
             self.topics.append(["service/binary/" + self.device.key, 0])
             self.topics.append(["pong/" + self.device.key, 0])
-            self.topics.append(
-                ["configurations/commands/" + self.device.key, 0]
-            )
+            self.topics.append(["configurations/commands/" + self.device.key, 0])
             if self.device.actuator_references:
                 for actuator_reference in self.device.actuator_references:
                     topic = [
@@ -192,6 +201,12 @@ Returns the current status of the connection
 Publishes the :samp:`outbound_message` to the WolkAbout IoT Platform
 
         """
+        print_d(
+            "[D] Publishing message - Channel: "
+            + outbound_message.channel
+            + " Payload: "
+            + str(outbound_message.payload)
+        )
         self.client.publish(
             outbound_message.channel, outbound_message.payload, self.qos
         )
@@ -215,6 +230,7 @@ This class provides the means of storing messages before they are sent to the Wo
     """
 
     def __init__(self, maxsize):
+        print_d("[D] Initialized queue with max size of " + str(maxsize))
         self.queue = queue.Queue(maxsize=maxsize)
 
     def put(self, message):
@@ -254,9 +270,7 @@ Returns the first :samp:`message` from :samp:`self.queue` without removing it fr
         return self.queue.peek()
 
 
-class ZerynthOutboundMessageFactory(
-    OutboundMessageFactory.OutboundMessageFactory
-):
+class ZerynthOutboundMessageFactory(OutboundMessageFactory.OutboundMessageFactory):
     """
 
 ------------------------
@@ -293,9 +307,11 @@ Serializes the :samp:`reading` to be sent to the WolkAbout IoT Platform
                     single_value = "false"
                 if "\n" in str(single_value):
                     single_value = single_value.replace("\n", "\\n")
+                    single_value = single_value.replace("\\\\n", "\\n")
                     single_value = single_value.replace("\r", "")
                 if '"' in str(single_value):
                     single_value = single_value.replace('"', '\\"')
+                    single_value = single_value.replace('\\\\"', '\\"')
                 values_list.append(single_value)
 
             string_values = str()
@@ -381,8 +397,10 @@ Serializes the :samp:`actuator` to be sent to the WolkAbout IoT Platform
         if "\n" in str(actuator.value):
             actuator.value = actuator.value.replace("\n", "\\n")
             actuator.value = actuator.value.replace("\r", "")
+            actuator.value = actuator.value.replace("\\\\n", "\\n")
         if '"' in str(actuator.value):
             actuator.value = actuator.value.replace('"', '\\"')
+            actuator.value = actuator.value.replace('\\\\"', '\\"')
 
         return OutboundMessage.OutboundMessage(
             "actuators/status/" + self.device_key + "/" + actuator.reference,
@@ -402,39 +420,22 @@ Serializes the current :samp:`firmware_status` to be sent to the WolkAbout IoT P
 * :samp:`firmware_status`: Firmware status to be serialized
 
         """
-        if (
-            firmware_status.status
-            == FirmwareStatusType.FIRMWARE_STATUS_FILE_TRANSFER
-        ):
+        if firmware_status.status == FirmwareStatusType.FIRMWARE_STATUS_FILE_TRANSFER:
             firmware_status.status = "FILE_TRANSFER"
 
-        elif (
-            firmware_status.status
-            == FirmwareStatusType.FIRMWARE_STATUS_FILE_READY
-        ):
+        elif firmware_status.status == FirmwareStatusType.FIRMWARE_STATUS_FILE_READY:
             firmware_status.status = "FILE_READY"
 
-        elif (
-            firmware_status.status
-            == FirmwareStatusType.FIRMWARE_STATUS_INSTALLATION
-        ):
+        elif firmware_status.status == FirmwareStatusType.FIRMWARE_STATUS_INSTALLATION:
             firmware_status.status = "INSTALLATION"
 
-        elif (
-            firmware_status.status
-            == FirmwareStatusType.FIRMWARE_STATUS_COMPLETED
-        ):
+        elif firmware_status.status == FirmwareStatusType.FIRMWARE_STATUS_COMPLETED:
             firmware_status.status = "COMPLETED"
 
-        elif (
-            firmware_status.status
-            == FirmwareStatusType.FIRMWARE_STATUS_ABORTED
-        ):
+        elif firmware_status.status == FirmwareStatusType.FIRMWARE_STATUS_ABORTED:
             firmware_status.status = "ABORTED"
 
-        elif (
-            firmware_status.status == FirmwareStatusType.FIRMWARE_STATUS_ERROR
-        ):
+        elif firmware_status.status == FirmwareStatusType.FIRMWARE_STATUS_ERROR:
             firmware_status.status = "ERROR"
 
         if firmware_status.status == "ERROR":
@@ -464,8 +465,7 @@ Serializes the current :samp:`firmware_status` to be sent to the WolkAbout IoT P
                 firmware_status.error = "3"
 
             elif (
-                firmware_status.error
-                == FirmwareErrorType.FIRMWARE_ERROR_MALFORMED_URL
+                firmware_status.error == FirmwareErrorType.FIRMWARE_ERROR_MALFORMED_URL
             ):
                 firmware_status.error = "4"
 
@@ -535,6 +535,7 @@ Serializes the device's configuration to be sent to the platform
                         single_value = single_value.replace("\r", "")
                     if '"' in str(single_value):
                         single_value = single_value.replace('"', '\\"')
+                        single_value = single_value.replace('\\\\"', '\\"')
 
                     values_list.append(single_value)
 
@@ -551,9 +552,11 @@ Serializes the device's configuration to be sent to the platform
 
                 if "\n" in str(value):
                     value = value.replace("\n", "\\n")
+                    value = value.replace("\\\\n", "\\n")
                     value = value.replace("\r", "")
                 if '"' in str(value):
                     value = value.replace('"', '\\"')
+                    value = value.replace('\\\\"', '\\"')
                 if value is True:
                     value = "true"
                 elif value is False:
@@ -564,8 +567,7 @@ Serializes the device's configuration to be sent to the platform
         values = values[:-1]
 
         message = OutboundMessage.OutboundMessage(
-            "configurations/current/" + self.device_key,
-            '{"values":{' + values + "}}",
+            "configurations/current/" + self.device_key, '{"values":{' + values + "}}"
         )
         return message
 
@@ -609,21 +611,15 @@ Deserializes the :samp:`message` that was received from the WolkAbout IoT Platfo
                 value = True
             elif value == "false":
                 value = False
-            actuation = ActuatorCommand.ActuatorCommand(
-                reference, command_type, value
-            )
+            actuation = ActuatorCommand.ActuatorCommand(reference, command_type, value)
             return actuation
         elif str(command) == "STATUS":
             command_type = ActuatorCommandType.ACTUATOR_COMMAND_TYPE_STATUS
-            actuation = ActuatorCommand.ActuatorCommand(
-                reference, command_type
-            )
+            actuation = ActuatorCommand.ActuatorCommand(reference, command_type)
             return actuation
         else:
             command_type = ActuatorCommandType.ACTUATOR_COMMAND_TYPE_UNKNOWN
-            actuation = ActuatorCommand.ActuatorCommand(
-                reference, command_type
-            )
+            actuation = ActuatorCommand.ActuatorCommand(reference, command_type)
             return actuation
 
     def deserialize_configuration_command(self, message):
@@ -646,59 +642,67 @@ Deserializes the :samp:`message` that was received from the WolkAbout IoT Platfo
                 command, payload.get("values")
             )
 
-            for (
-                received_reference,
-                received_value,
-            ) in configuration.values.items():
-                if "\n" in str(received_value):
-                    received_value = received_value.replace("\\n", "\n")
-                    received_value = received_value.replace("\r", "")
-                if '"' in str(received_value):
-                    received_value = received_value.replace('\\"', '"')
+            temp_dict = dict()
+
+            for (received_reference, received_value) in configuration.values.items():
+                try:
+                    if "." in received_value:
+                        temp_value = float(received_value)
+                    else:
+                        temp_value = int(received_value)
+                except ValueError:
+                    pass
+
+                if type(received_value) == 4:  # PSTRING
+                    if "," in str(received_value):
+                        values_list = received_value.split(",")
+                        for value in values_list:
+                            if "\\n" in str(value):
+                                value = value.replace("\\n", "\n")
+                                value = value.replace("\r", "")
+                            if '\\"' in str(value):
+                                value = value.replace('\\"', '"')
+                            if value == "true":
+                                value = True
+                            elif value == "false":
+                                value = False
+                            try:
+                                if "." in value:
+                                    value = float(value)
+                                else:
+                                    value = int(value)
+                            except ValueError:
+                                pass
+                        temp_value = tuple(values_list)
+                    else:
+                        if "\n" in str(received_value):
+                            temp_value = received_value.replace("\\n", "\n")
+                            temp_value = received_value.replace("\r", "")
+                        elif '"' in str(received_value):
+                            temp_value = received_value.replace('\\"', '"')
+                        else:
+                            temp_value = received_value
+
                 if received_value == "true":
-                    received_value = True
+                    temp_value = True
                 elif received_value == "false":
-                    received_value = False
-                if "," in received_value:
-                    values_list = received_value.split(",")
-                    for value in values_list:
-                        if "\\n" in str(value):
-                            value = value.replace("\\n", "\n")
-                            value = value.replace("\r", "")
-                        if '\\"' in str(value):
-                            value = value.replace('\\"', '"')
-                        if value == "true":
-                            value = True
-                        elif value == "false":
-                            value = False
-                        try:
-                            if "." in value:
-                                value = float(value)
-                            else:
-                                value = int(value)
-                        except ValueError:
-                            pass
+                    temp_value = False
 
-                    configuration.values[received_reference] = tuple(
-                        values_list
-                    )
+                temp_dict[received_reference] = temp_value
 
+            configuration.values = temp_dict
             return configuration
 
         elif command == "CURRENT":
 
-            command = (
-                ConfigurationCommandType.CONFIGURATION_COMMAND_TYPE_CURRENT
-            )
+            command = ConfigurationCommandType.CONFIGURATION_COMMAND_TYPE_CURRENT
 
             configuration = ConfigurationCommand.ConfigurationCommand(command)
             return configuration
 
         else:
 
-            command = (
-                ConfigurationCommandType.CONFIGURATION_COMMAND_TYPE_UNKNOWN
-            )
+            command = ConfigurationCommandType.CONFIGURATION_COMMAND_TYPE_UNKNOWN
 
             configuration = ConfigurationCommand.ConfigurationCommand(command)
             return configuration
@@ -721,9 +725,7 @@ in cases where no data is being sent by the device for over 30 minutes.
 * :samp:`interval`:  The number of milliseconds between each keep alive message
     """
 
-    def __init__(
-        self, connectivity_service, outbound_message_factory, interval
-    ):
+    def __init__(self, connectivity_service, outbound_message_factory, interval):
         self.connectivity_service = connectivity_service
         self.outbound_message_factory = outbound_message_factory
         self.interval = interval
@@ -744,6 +746,11 @@ Handles the keep alive response message received from the platform
 Sends a keep alive message as soon as the device is connected to the platform
 and starts a repeating timer to send subsequent keep alive messages every `self.interval` milliseconds
         """
+        print_d(
+            "[D] Initialized keep alive service with interval of "
+            + str(self.interval)
+            + " milliseconds"
+        )
         self.timer = timers.timer()
         self.timer.interval(self.interval, self.send_keep_alive)
         self.timer.start()
@@ -801,13 +808,9 @@ This class is a wrapper for the WolkCore class that passes the Zerynth compatibl
         keep_alive_enabled=True,
     ):
         self.device = device
-        self.outbound_message_factory = ZerynthOutboundMessageFactory(
-            device.key
-        )
+        self.outbound_message_factory = ZerynthOutboundMessageFactory(device.key)
         self.outbound_message_queue = outbound_message_queue
-        self.connectivity_service = ZerynthMQTTConnectivityService(
-            device, host, port
-        )
+        self.connectivity_service = ZerynthMQTTConnectivityService(device, host, port)
         self.deserializer = ZerynthInboundMessageDeserializer()
         if device.actuator_references and (
             actuation_handler is None or actuator_status_provider is None

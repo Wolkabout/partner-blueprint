@@ -58,6 +58,15 @@ wolk.publish()
 wolk.disconnect()
 ```
 
+### Debugging
+
+Display send and received messages with `iot.debug_mode` :
+
+```python
+# Enable debug printing by setting flag to True
+iot.debug_mode = False
+```
+
 ----
 
 ## Advanced features
