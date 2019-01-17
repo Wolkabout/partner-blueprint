@@ -1,8 +1,7 @@
 {
+    "description": "Module for connecting to WolkAbout IoT Platform",
     "fullname": "lib.wolkabout.iot",
     "git_pointer": "github://wolkabout/wolkabout-iot",
-    "title": "WolkAbout IoT",
-    "description": "Module for connecting to WolkAbout IoT Platform",
     "info": {
         "chip_manufacturer": "-",
         "chip_name": "-",
@@ -14,5 +13,6 @@
         "IoT"
     ],
     "repo": "official",
-    "version": "r2.1.2"
+    "title": "WolkAbout IoT",
+    "version": "r2.2.0"
 }
