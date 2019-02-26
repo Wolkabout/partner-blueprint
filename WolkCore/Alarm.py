@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 """
-    Alarm as defined in the device manifest.
+    Alarm as defined in the device template.
 """
 
 

@@ -10,8 +10,8 @@ Supported protocol(s):
 
 ### Establishing connection with WolkAbout IoT platform
 
-Create a device on WolkAbout IoT platform by importing [manifest.json](https://github.com/Wolkabout/wolkabout-iot/blob/master/examples/Controlled_publish_period/manifest.json).
-This manifest fits [Controlled_publish_period](https://github.com/Wolkabout/wolkabout-iot/blob/master/examples/Controlled_publish_period/main.py) example and demonstrates the periodic sending of a temperature sensor reading.
+Create a device on WolkAbout IoT platform by importing [Simple-example-deviceTemplate.json](https://github.com/Wolkabout/wolkabout-iot/blob/master/examples/Controlled_publish_period/Simple-example-deviceTemplate.json).
+This template fits [Controlled_publish_period](https://github.com/Wolkabout/wolkabout-iot/blob/master/examples/Controlled_publish_period/main.py) example and demonstrates the periodic sending of a temperature sensor reading.
 
 ```python
 from wolkabout.iot import iot

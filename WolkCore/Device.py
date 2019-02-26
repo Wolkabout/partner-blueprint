@@ -28,7 +28,7 @@ class Device:
         :type key: str
         :param password: Password used to authenticate the connection
         :type password: str
-        :param actuator_references: List of actuator references defined in the device manifest
+        :param actuator_references: List of actuator references defined in the device template
         :type actuator_references: list
         """
         self.key = key

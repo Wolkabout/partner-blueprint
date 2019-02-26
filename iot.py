@@ -941,7 +941,7 @@ Device
 
     * :samp:`key` - The device key obtained when creating the device on WolkAbout IoT platform
     * :samp:`password` - The device password obtained when creating the device on WolkAbout IoT platform
-    * :samp:`actuator_references` - A list of actuator references defined on in the device manifest on WolkAbout IoT Platform
+    * :samp:`actuator_references` - A list of actuator references defined in the device template on WolkAbout IoT Platform
 
     """
 
