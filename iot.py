@@ -152,22 +152,26 @@ Raises an exception if the connection failed.
         try:
             self.client.connect(self.host, keepalive=60, port=self.port)
             self.topics = []
-            self.topics.append(["service/commands/firmware/" + self.device.key, 0])
-            self.topics.append(["service/commands/file/" + self.device.key, 0])
-            self.topics.append(["service/commands/url/" + self.device.key, 0])
-            self.topics.append(["service/binary/" + self.device.key, 0])
-            self.topics.append(["pong/" + self.device.key, 0])
-            self.topics.append(["configurations/commands/" + self.device.key, 0])
+            self.topics.append(["p2d/configuration_get/d/" + self.device.key, 0])
+            self.topics.append(["p2d/configuration_set/d/" + self.device.key, 0])
             if self.device.actuator_references:
                 for actuator_reference in self.device.actuator_references:
-                    topic = [
-                        "actuators/commands/"
+                    topic_get = [
+                        "p2d/actuator_get/d/"
                         + self.device.key
-                        + "/"
+                        + "/r/"
                         + actuator_reference,
                         self.qos,
                     ]
-                    self.topics.append(topic)
+                    self.topics.append(topic_get)
+                    topic_set = [
+                        "p2d/actuator_set/d/"
+                        + self.device.key
+                        + "/r/"
+                        + actuator_reference,
+                        self.qos,
+                    ]
+                    self.topics.append(topic_set)
             self.client.subscribe(self.topics)
             self.client.on(mqtt.PUBLISH, self.on_mqtt_message)
             self.client.loop()
@@ -335,12 +339,12 @@ Serializes the :samp:`reading` to be sent to the WolkAbout IoT Platform
 
         if reading.timestamp is None:
             return OutboundMessage.OutboundMessage(
-                "readings/" + self.device_key + "/" + reading.reference,
+                "d2p/sensor_reading/d/" + self.device_key + "/r/" + reading.reference,
                 '{ "data" : "' + str(reading.value) + '" }',
             )
         else:
             return OutboundMessage.OutboundMessage(
-                "readings/" + self.device_key + "/" + reading.reference,
+                "d2p/sensor_reading/d/" + self.device_key + "/r/" + reading.reference,
                 '{ "utc" : "'
                 + str(reading.timestamp)
                 + '", "data" : "'
@@ -362,12 +366,12 @@ Serializes the :samp:`alarm` to be sent to the WolkAbout IoT Platform
             alarm.active = "false"
         if alarm.timestamp is None:
             return OutboundMessage.OutboundMessage(
-                "events/" + self.device_key + "/" + alarm.reference,
+                "d2p/events/d/" + self.device_key + "/r/" + alarm.reference,
                 '{ "data" : "' + str(alarm.active) + '" }',
             )
         else:
             return OutboundMessage.OutboundMessage(
-                "events/" + self.device_key + "/" + alarm.reference,
+                "d2p/events/d/" + self.device_key + "/r/" + alarm.reference,
                 '{ "utc" : "'
                 + str(alarm.timestamp)
                 + '", "data" : "'
@@ -403,110 +407,13 @@ Serializes the :samp:`actuator` to be sent to the WolkAbout IoT Platform
             actuator.value = actuator.value.replace('\\\\"', '\\"')
 
         return OutboundMessage.OutboundMessage(
-            "actuators/status/" + self.device_key + "/" + actuator.reference,
+            "d2p/actuator_status/d/" + self.device_key + "/r/" + actuator.reference,
             '{ "status" : "'
             + actuator.state
             + '" , "value" : "'
             + str(actuator.value)
             + '" }',
         )
-
-    def make_from_firmware_status(self, firmware_status):
-        """
-.. method:: make_from_firmware_status(self, firmware_status)
-
-Serializes the current :samp:`firmware_status` to be sent to the WolkAbout IoT Platform
-
-* :samp:`firmware_status`: Firmware status to be serialized
-
-        """
-        if firmware_status.status == FirmwareStatusType.FIRMWARE_STATUS_FILE_TRANSFER:
-            firmware_status.status = "FILE_TRANSFER"
-
-        elif firmware_status.status == FirmwareStatusType.FIRMWARE_STATUS_FILE_READY:
-            firmware_status.status = "FILE_READY"
-
-        elif firmware_status.status == FirmwareStatusType.FIRMWARE_STATUS_INSTALLATION:
-            firmware_status.status = "INSTALLATION"
-
-        elif firmware_status.status == FirmwareStatusType.FIRMWARE_STATUS_COMPLETED:
-            firmware_status.status = "COMPLETED"
-
-        elif firmware_status.status == FirmwareStatusType.FIRMWARE_STATUS_ABORTED:
-            firmware_status.status = "ABORTED"
-
-        elif firmware_status.status == FirmwareStatusType.FIRMWARE_STATUS_ERROR:
-            firmware_status.status = "ERROR"
-
-        if firmware_status.status == "ERROR":
-
-            if (
-                firmware_status.error
-                == FirmwareErrorType.FIRMWARE_ERROR_UNSPECIFIED_ERROR
-            ):
-                firmware_status.error = "0"
-
-            elif (
-                firmware_status.error
-                == FirmwareErrorType.FIRMWARE_ERROR_FILE_UPLOAD_DISABLED
-            ):
-                firmware_status.error = "1"
-
-            elif (
-                firmware_status.error
-                == FirmwareErrorType.FIRMWARE_ERROR_UNSUPPORTED_FILE_SIZE
-            ):
-                firmware_status.error = "2"
-
-            elif (
-                firmware_status.error
-                == FirmwareErrorType.FIRMWARE_ERROR_INSTALLATION_FAILED
-            ):
-                firmware_status.error = "3"
-
-            elif (
-                firmware_status.error == FirmwareErrorType.FIRMWARE_ERROR_MALFORMED_URL
-            ):
-                firmware_status.error = "4"
-
-            elif (
-                firmware_status.error
-                == FirmwareErrorType.FIRMWARE_ERROR_FILE_SYSTEM_ERROR
-            ):
-                firmware_status.error = "5"
-
-            elif (
-                firmware_status.error
-                == FirmwareErrorType.FIRMWARE_ERROR_RETRY_COUNT_EXCEEDED
-            ):
-                firmware_status.error = "10"
-
-        if firmware_status.error:
-
-            message = OutboundMessage.OutboundMessage(
-                "service/status/firmware/" + self.device_key,
-                '{"status" : "'
-                + firmware_status.status
-                + '", "error" : '
-                + firmware_status.error
-                + "}",
-            )
-            return message
-        else:
-
-            message = OutboundMessage.OutboundMessage(
-                "service/status/firmware/" + self.device_key,
-                '{"status" : "' + firmware_status.status + '"}',
-            )
-            return message
-
-    def make_from_keep_alive_message(self):
-        """
-.. method:: make_from_keep_alive_message()
-
-Pings the platform to keep the device connected
-        """
-        return OutboundMessage.OutboundMessage("ping/" + self.device_key, None)
 
     def make_from_configuration(self, configuration):
         """
@@ -567,7 +474,7 @@ Serializes the device's configuration to be sent to the platform
         values = values[:-1]
 
         message = OutboundMessage.OutboundMessage(
-            "configurations/current/" + self.device_key, '{"values":{' + values + "}}"
+            "d2p/configuration_get/d/" + self.device_key, '{"values":{' + values + "}}"
         )
         return message
 
@@ -708,71 +615,6 @@ Deserializes the :samp:`message` that was received from the WolkAbout IoT Platfo
             return configuration
 
 
-class ZerynthKeepAliveService(KeepAliveService.KeepAliveService):
-    """
-
-------------------
-Keep Alive Service
-------------------
-
-.. class:: ZerynthKeepAliveService(KeepAliveService.KeepAliveService)
-
-This class will send messages to the platform in regular intervals to keep the device connected
-in cases where no data is being sent by the device for over 30 minutes.
-
-* :samp:`connectivity_service`: Connectivity service used to publish keep alive messages
-* :samp:`outbound_message_factory`: Outbound message factory used to create keep alive messages
-* :samp:`interval`:  The number of milliseconds between each keep alive message
-    """
-
-    def __init__(self, connectivity_service, outbound_message_factory, interval):
-        self.connectivity_service = connectivity_service
-        self.outbound_message_factory = outbound_message_factory
-        self.interval = interval
-        self.timer = None
-
-    def handle_pong(self):
-        """
-.. method:: handle_pong()
-
-Handles the keep alive response message received from the platform
-        """
-        pass
-
-    def start(self):
-        """
-.. method:: start()
-
-Sends a keep alive message as soon as the device is connected to the platform
-and starts a repeating timer to send subsequent keep alive messages every `self.interval` milliseconds
-        """
-        print_d(
-            "[D] Initialized keep alive service with interval of "
-            + str(self.interval)
-            + " milliseconds"
-        )
-        self.timer = timers.timer()
-        self.timer.interval(self.interval, self.send_keep_alive)
-        self.timer.start()
-
-    def stop(self):
-        """
-.. method:: stop()
-
-Stops the repeating timer
-        """
-        self.timer.destroy()
-
-    def send_keep_alive(self):
-        """
-.. method:: send_keep_alive()
-
-Creates a keep alive message from the outbound message factory and publishes it using the connectivity service
-        """
-        message = self.outbound_message_factory.make_from_keep_alive_message()
-        self.connectivity_service.publish(message)
-
-
 class Wolk:
     """
 ==========
@@ -791,7 +633,6 @@ This class is a wrapper for the WolkCore class that passes the Zerynth compatibl
 * :samp:`outbound_message_queue`: Implementation of the :samp:`OutboundMessageQueue` interface
 * :samp:`configuration_handler`: Implementation of the :samp:`ConfigurationHandler` interface
 * :samp:`configuration_provider`: Implementation of the :samp:`ConfigurationProvider` interface
-* :samp:`keep_alive_enabled`: Service that sends ping message to platform
 
     """
 
@@ -805,7 +646,6 @@ This class is a wrapper for the WolkCore class that passes the Zerynth compatibl
         outbound_message_queue=ZerynthOutboundMessageQueue(100),
         configuration_handler=None,
         configuration_provider=None,
-        keep_alive_enabled=True,
     ):
         self.device = device
         self.outbound_message_factory = ZerynthOutboundMessageFactory(device.key)
@@ -817,15 +657,6 @@ This class is a wrapper for the WolkCore class that passes the Zerynth compatibl
         ):
             raise InterfaceNotProvided
 
-        self.keep_alive_service = None
-        if keep_alive_enabled:
-            keep_alive_interval_milliseconds = 30000
-            self.keep_alive_service = ZerynthKeepAliveService(
-                self.connectivity_service,
-                self.outbound_message_factory,
-                keep_alive_interval_milliseconds,
-            )
-
         try:
             self._wolk = WolkCore.WolkCore(
                 self.outbound_message_factory,
@@ -836,8 +667,6 @@ This class is a wrapper for the WolkCore class that passes the Zerynth compatibl
                 self.deserializer,
                 configuration_handler,
                 configuration_provider,
-                self.keep_alive_service,
-                None,
             )
         except Exception as e:
             raise e
@@ -1055,5 +884,5 @@ ACTUATOR_STATE_ERROR = 2
 
 # "Enum" of version number
 VERSION_MAJOR = 1
-VERSION_MINOR = 1
+VERSION_MINOR = 2
 VERSION_PATCH = 0

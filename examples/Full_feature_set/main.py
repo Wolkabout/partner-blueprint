@@ -127,7 +127,6 @@ try:
         outbound_message_queue=iot.ZerynthOutboundMessageQueue(200),
         configuration_handler=ConfigurationHandlerImpl(),
         configuration_provider=ConfigurationProviderImpl(),
-        keep_alive_enabled=True,
     )
 except Exception as e:
     print("Something went wrong while creating the Wolk instance: ", e)

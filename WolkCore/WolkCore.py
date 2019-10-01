@@ -191,7 +191,7 @@ class WolkCore:
         :param message:  The message received from the platform
         :type message: InboundMessage
         """
-        if message.channel.startswith("actuators/commands/"):
+        if message.channel.startswith("p2d/actuator"):
 
             if not self.actuation_handler or not self.actuator_status_provider:
                 return
@@ -211,6 +211,28 @@ class WolkCore:
             elif actuation.command == ActuatorCommandType.ACTUATOR_COMMAND_TYPE_STATUS:
 
                 self.publish_actuator_status(actuation.reference)
+
+        elif message.channel.startswith("p2d/configuration"):
+
+            if not self.configuration_provider or not self.configuration_handler:
+                return
+
+            configuration = self.inbound_message_deserializer.deserialize_configuration_command(
+                message
+            )
+
+            if (
+                configuration.command
+                == ConfigurationCommandType.CONFIGURATION_COMMAND_TYPE_SET
+            ):
+                self.configuration_handler.handle_configuration(configuration.values)
+                self.publish_configuration()
+
+            elif (
+                configuration.command
+                == ConfigurationCommandType.CONFIGURATION_COMMAND_TYPE_CURRENT
+            ):
+                self.publish_configuration()
 
         elif message.channel.startswith("service/commands/firmware/"):
 
@@ -284,28 +306,6 @@ class WolkCore:
                 message
             )
             self.firmware_update.handle_packet(packet)
-
-        elif message.channel.startswith("configurations/commands/"):
-
-            if not self.configuration_provider or not self.configuration_handler:
-                return
-
-            configuration = self.inbound_message_deserializer.deserialize_configuration_command(
-                message
-            )
-
-            if (
-                configuration.command
-                == ConfigurationCommandType.CONFIGURATION_COMMAND_TYPE_SET
-            ):
-                self.configuration_handler.handle_configuration(configuration.values)
-                self.publish_configuration()
-
-            elif (
-                configuration.command
-                == ConfigurationCommandType.CONFIGURATION_COMMAND_TYPE_CURRENT
-            ):
-                self.publish_configuration()
 
     def _on_packet_request(self, file_name, chunk_index, chunk_size):
         """
