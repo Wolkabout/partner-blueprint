@@ -3,7 +3,7 @@
 WolkAbout Python Connector library for connecting Zerynth enabled devices to [WolkAbout IoT Platform](https://demo.wolkabout.com/#/login).
 
 Supported protocol(s):
-* JsonSingleReferenceProtocol
+* JSON_PROTOCOL
 
 ## Example Usage
 ----
@@ -164,14 +164,3 @@ wolk = iot.Wolk(device, outbound_message_queue=custom_queue)
 wolk.connect()
 ```
 For more info on persistence mechanism see `iot.OutboundMessageQueue` class
-
-### Keep alive mechanism
-
-The library by default uses a Keep Alive mechanism to notify WolkAbout IoT Platform that device is still connected. A keep alive message is sent to WolkAbout IoT Platform every 30 seconds.
-
-To reduce network usage Keep Alive mechanism can be disabled in following manner:
-
-```python
-wolk = iot.Wolk(device, keep_alive_enabled=False)
-wolk.connect()
-```
