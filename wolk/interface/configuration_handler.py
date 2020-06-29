@@ -1,3 +1,4 @@
+"""Enable configuration commands from the Platform to the device."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,25 +13,19 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    ActuatorStatusProvider reads the status of your device's actuators. This information is passed on to the platform.
-"""
 
+class ConfigurationHandler:
+    """Configuration Handler Interface."""
 
-class ActuatorStatusProvider:
-    """
-        Actuator Status Provider Interface
-    """
-
-    def get_actuator_status(self, reference):
+    def handle_configuration(self, configuration):
         """
-        Reads the status of actuator from the device
-        and returns it as a tuple containing the ActuatorState and current value.
+        Handle incoming configuration commands.
+
+        Updates device's configuration with received configuration values.
         Must be implemented as non blocking.
         Must be implemented as thread safe.
-        :param reference:
-        :type reference: str
-        :returns: (state, value)
-        :rtype: (ActuatorState, int/str)
+
+        :param configuration: Holds the command and a dictionary of configuration key/value pairs
+        :type configuration: ConfigurationCommand
         """
         pass

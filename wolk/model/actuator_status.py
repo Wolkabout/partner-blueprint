@@ -1,3 +1,4 @@
+"""Contains the status of the Actuator."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,10 +13,21 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    Types of actuator commands received from the platform
-"""
 
-ACTUATOR_COMMAND_TYPE_SET = 0
-ACTUATOR_COMMAND_TYPE_STATUS = 1
-ACTUATOR_COMMAND_TYPE_UNKNOWN = 2
+class ActuatorStatus:
+    """Actuator Status class."""
+
+    def __init__(self, reference, state, value):
+        """
+        State of a device actuator.
+
+        :param reference: The reference of the actuator
+        :type reference: str
+        :param state: The actuators current state
+        :type state: ActuatorState
+        :param value: The actuators current value
+        :type value: bool or int or float or string
+        """
+        self.reference = reference
+        self.state = state
+        self.value = value

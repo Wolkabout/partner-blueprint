@@ -1,3 +1,4 @@
+"""Everything needed for authenticating a device on WolkAbout IoT Platform."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,24 +13,20 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    Holds all the necessary information to communicate with the platform
-"""
-
 
 class Device:
-    """
-        Device class
-    """
+    """Device model."""
 
     def __init__(self, key, password, actuator_references=None):
         """
+        Device identified by key and password, and a list of actuator references.
+
         :param key: Username used to connect to the platform
         :type key: str
         :param password: Password used to authenticate the connection
         :type password: str
-        :param actuator_references: List of actuator references defined in the device template
-        :type actuator_references: list
+        :param actuator_references: List of device's actuator references
+        :type actuator_references: List[str]
         """
         self.key = key
         self.password = password

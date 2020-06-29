@@ -1,3 +1,4 @@
+"""Holds information about a sensor reading."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,25 +13,21 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    Holds all data contained from a firmware chunk request response
-"""
 
+class SensorReading:
+    """Sensor reading model."""
 
-class FileTransferPacket:
-    """
-        File Transfer Packet
-    """
-
-    def __init__(self, previous_hash, data, current_hash):
+    def __init__(self, reference, value, timestamp=None):
         """
-        :param previous_hash: Hash of the previous chunk
-        :type previous_hash: bytes
-        :param data: The requested chunk
-        :type data: bytes
-        :param current_hash: Hash of the current chunk
-        :type current_hash: bytes
+        Information about a sensor reading.
+
+        :param reference: The reference of the sensor
+        :type reference: str
+        :param value: The value of the reading
+        :type value: bool or int or float or str or tuple of previous types
+        :param timestamp: (optional) Unix timestamp - if not provided, Platform will assign one
+        :type timestamp: int
         """
-        self.previous_hash = previous_hash
-        self.data = data
-        self.current_hash = current_hash
+        self.reference = reference
+        self.value = value
+        self.timestamp = timestamp

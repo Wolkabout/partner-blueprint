@@ -1,3 +1,4 @@
+"""Provide means of reading device's current configuration options."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,25 +13,21 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    Sensor as defined in the device manifest
-"""
 
+class ConfigurationProvider:
+    """Configuration Provider Interface."""
 
-class SensorReading:
-    """
-        Sensor Reading Class
-    """
-
-    def __init__(self, reference, value, timestamp=None):
+    def get_configuration(self):
         """
-        :param reference: The reference of the sensor
-        :type reference: str
-        :param value: The value of the reading
-        :type value: int, float, str
-        :param timestamp: (optional) Unix timestamp - if not provided, platform will assign one upon reception
-        :type timestamp: int
+        Read device configuration.
+
+        Returns it as a dictionary with device configuration reference as key,
+        and device configuration value as value.
+
+        Must be implemented as non blocking.
+        Must be implemented as thread safe.
+
+        :returns: configuration
+        :rtype: dict
         """
-        self.reference = reference
-        self.value = value
-        self.timestamp = timestamp
+        pass

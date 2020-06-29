@@ -1,3 +1,4 @@
+"""Provide means of storing messages before they are sent to the Platform."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,26 +13,33 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    ConfigurationProvider reads the device's configuration. This information is passed on to the platform.
-"""
 
+class MessageQueue:
+    """Message Queue Interface."""
 
-class ConfigurationProvider:
-    """
-        Configuration Provider Interface
-    """
-
-    def get_configuration(self):
+    def put(self, message):
         """
-        Reads device configuration and returns it as a dictionary
-        with device configuration reference as key,
-        and device configuration value as value.
+        Place a message into storage.
 
-        Must be implemented as non blocking.
-        Must be implemented as thread safe.
+        :param message: Message to be stored
+        :type message: Message
+        """
+        pass
 
-        :returns: configuration
-        :rtype: dict
+    def get(self):
+        """
+        Get a message from storage by removing it.
+
+        :returns: message
+        :rtype: Message
+        """
+        pass
+
+    def peek(self):
+        """
+        Get a message from storage but not remove it.
+
+        :returns: message
+        :rtype: Message
         """
         pass

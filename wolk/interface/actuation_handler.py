@@ -1,3 +1,4 @@
+"""Enable actuation commands from the Platform to the device."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,12 +13,21 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    Types of firmware update states
-"""
 
-FIRMWARE_UPDATE_STATE_IDLE = 0
-FIRMWARE_UPDATE_STATE_FILE_TRANSFER = 1
-FIRMWARE_UPDATE_STATE_URL_DOWNLOAD = 2
-FIRMWARE_UPDATE_STATE_FILE_OBTAINED = 3
-FIRMWARE_UPDATE_STATE_INSTALL = 4
+class ActuationHandler:
+    """Actuation Handler."""
+
+    def handle_actuation(self, reference, value):
+        """
+        Handle incoming actuation commands.
+
+        This method should pass the new value for the actuator on the device.
+        Must be implemented as non blocking.
+        Must be implemented as thread safe.
+
+        :param reference: The reference of the actuator
+        :type reference: str
+        :param value: The value to which to set the actuator
+        :type value: int, float, string
+        """
+        pass

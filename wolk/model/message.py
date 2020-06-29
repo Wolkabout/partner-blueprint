@@ -1,3 +1,4 @@
+"""Message format used for communication with the Platform."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,33 +13,18 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    Should be implemented to provide means of storing messages before they are sent to the platform
-"""
 
+class Message:
+    """MQTT Message model."""
 
-class OutboundMessageQueue:
-    """
-        Outbound Message Queue Interface
-    """
+    def __init__(self, topic, payload):
+        """
+        MQTT Message identified by topic and payload.
 
-    def put(self, message):
+        :param topic: Topic where the message will be published to
+        :type topic: str
+        :param payload: Payload of the message that will be published
+        :type payload: str
         """
-        :param message: Message to be stored
-        :type message: OutboundMessage
-        """
-        pass
-
-    def get(self):
-        """
-        :returns: message
-        :rtype: OutboundMessage
-        """
-        pass
-
-    def peek(self):
-        """
-        :returns: message
-        :rtype: OutboundMessage
-        """
-        pass
+        self.topic = topic
+        self.payload = payload
