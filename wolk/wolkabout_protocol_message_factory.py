@@ -14,11 +14,11 @@
 #   limitations under the License.
 import json
 
-from wolkabout.iot.wolk.interace.message_factory import MessageFactory
-from wolkabout.iot.wolk.model.message import Message
+from wolkabout.iot.wolk.interface import message_factory
+from wolkabout.iot.wolk.model import message
 
 
-class WolkAboutProtocolMessageFactory(MessageFactory):
+class WolkAboutProtocolMessageFactory(message_factory.MessageFactory):
     """Serialize device data to be sent to the Platform."""
 
     DEVICE_PATH_PREFIX = "d/"
@@ -47,10 +47,11 @@ class WolkAboutProtocolMessageFactory(MessageFactory):
         :param reading: Sensor reading to serialize
         :type reading: SensorReading
         :return: serialized message
-        :rtype: Message
+        :rtype: message.Message
         """
         topic = (
             self.SENSOR_READING
+            + self.DEVICE_PATH_PREFIX
             + self.device_key
             + self.TOPIC_DELIMITER
             + self.REFERENCE_PATH_PREFIX
@@ -102,7 +103,7 @@ class WolkAboutProtocolMessageFactory(MessageFactory):
 
         payload["data"] = str(reading.value)
 
-        return Message(topic, json.dumps(payload))
+        return message.Message(topic, json.dumps(payload))
 
     def make_from_alarm(self, alarm):
         """
@@ -133,7 +134,7 @@ class WolkAboutProtocolMessageFactory(MessageFactory):
 
         payload["data"] = alarm.active
 
-        return Message(topic, json.dumps(payload))
+        return message.Message(topic, json.dumps(payload))
 
     def make_from_actuator_status(self, actuator):
         """
@@ -168,7 +169,7 @@ class WolkAboutProtocolMessageFactory(MessageFactory):
 
         payload["value"] = str(actuator.value)
 
-        return Message(topic, json.dumps(payload))
+        return message.Message(topic, json.dumps(payload))
 
     def make_from_configuration(self, configuration):
         """
@@ -196,4 +197,6 @@ class WolkAboutProtocolMessageFactory(MessageFactory):
 
             configuration[reference] = str(value)
 
-        return Message(topic, json.dumps(configuration))
+        payload = {"values": configuration}
+
+        return message.Message(topic, json.dumps(payload))

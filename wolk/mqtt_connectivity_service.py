@@ -14,11 +14,11 @@
 #   limitations under the License.
 from mqtt import mqtt
 
-from wolkabout.iot.wolk.interace.connectivity_service import ConnectivityService
-from wolkabout.iot.wolk.model.message import Message
+from wolkabout.iot.wolk.interface import connectivity_service
+from wolkabout.iot.wolk.model import message
 
 
-class MQTTConnectivityService(ConnectivityService):
+class MQTTConnectivityService(connectivity_service.ConnectivityService):
     """Provide connection to WolkAbout IoT Platform via MQTT."""
 
     def __init__(self, device, topics, host, port, qos=0):
@@ -66,8 +66,8 @@ class MQTTConnectivityService(ConnectivityService):
         if "message" in data:
             topic = data["message"].topic
             payload = data["message"].payload
-            message = Message(topic, payload)
-            self._inbound_message_listener(message)
+            received_message = message.Message(topic, payload)
+            self._inbound_message_listener(received_message)
 
     def connect(self):
         """
@@ -87,9 +87,10 @@ class MQTTConnectivityService(ConnectivityService):
 
         try:
             self._client.connect(self.host, keepalive=60, port=self.port)
-            # TODO: topic QOS
-            # self.topics.append(["p2d/configuration_set/d/" + self.device.key, 0])
-            self._client.subscribe(self.topics)
+            topics = []
+            for topic in self.topics:
+                topics.append([topic, 2])
+            self._client.subscribe(topics)
             self._client.on(mqtt.PUBLISH, self.on_mqtt_message)
             self._client.loop()
             self._connected = True
@@ -99,7 +100,7 @@ class MQTTConnectivityService(ConnectivityService):
     def disconnect(self):
         """Disconnect the device from the Platform."""
         if self._connected:
-            self.publish(Message("lastwill/" + self.device.key, None))
+            self.publish(message.Message("lastwill/" + self.device.key, None))
         self._connected = False
         self._client.disconnect()
 

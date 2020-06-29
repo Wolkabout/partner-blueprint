@@ -14,11 +14,11 @@
 #   limitations under the License.
 import json
 
-from wolkabout.iot.wolk.interace.message_deserializer import MessageDeserializer
-from wolkabout.iot.wolk.model.actuator_command import ActuatorCommand
+from wolkabout.iot.wolk.interface import message_deserializer
+from wolkabout.iot.wolk.model import actuator_command
 
 
-class WolkAboutProtocolMessageDeserializer(MessageDeserializer):
+class WolkAboutProtocolMessageDeserializer(message_deserializer.MessageDeserializer):
     """Deserialize messages received from the WolkAbout IoT Platform."""
 
     DEVICE_PATH_DELIMITER = "d/"
@@ -45,7 +45,7 @@ class WolkAboutProtocolMessageDeserializer(MessageDeserializer):
                 self.ACTUATOR_SET
                 + self.DEVICE_PATH_DELIMITER
                 + device.key
-                + self.CHANNEL_DELIMITER
+                + self.TOPIC_DELIMITER
                 + self.REFERENCE_PATH_PREFIX
                 + reference
             )
@@ -111,16 +111,24 @@ class WolkAboutProtocolMessageDeserializer(MessageDeserializer):
         payload = json.loads(bytearray_payload)
 
         value = payload.get("value")
+        try:
+            value = float(value)
+        except Exception:
+            try:
+                value = int(value)
+            except Exception:
+                pass
         if "\\n" in str(value):
             value = value.replace("\\n", "\n")
             value = value.replace("\r", "")
         if '\\"' in str(value):
             value = value.replace('\\"', '"')
+
         if value == "true":
             value = True
         elif value == "false":
             value = False
-        actuation = ActuatorCommand(reference, value)
+        actuation = actuator_command.ActuatorCommand(reference, value)
         return actuation
 
     def parse_configuration_command(self, message):
@@ -133,8 +141,8 @@ class WolkAboutProtocolMessageDeserializer(MessageDeserializer):
         :rtype: dict
         """
         bytearray_payload = bytearray(message.payload)
-        payload = json.loads(bytearray_payload)
-        configurations = payload.get("values")
+        configurations = json.loads(bytearray_payload)
+
         temp_dict = {}
 
         for received_reference, received_value in configurations.items():

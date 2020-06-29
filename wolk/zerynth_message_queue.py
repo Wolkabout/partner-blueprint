@@ -15,10 +15,10 @@
 
 import queue
 
-from wolkabout.iot.wolk.interface.message_queue import MessageQueue
+from wolkabout.iot.wolk.interface import message_queue
 
 
-class ZerynthMessageQueue(MessageQueue):
+class ZerynthMessageQueue(message_queue.MessageQueue):
     """Store messages before they are sent to WolkAbout IoT Platform."""
 
     def __init__(self, max_size):

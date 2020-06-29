@@ -12,19 +12,15 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-from timers import timer
+import timers
 
-from wolkabout.iot.wolk.wolkabout_protocol_message_factory import (
-    WolkAboutProtocolMessageFactory,
-)
-from wolkabout.iot.wolk.wolkabout_protocol_message_deserializer import (
-    WolkAboutProtocolMessageDeserializer,
-)
-from wolkabout.iot.wolk.model.sensor_reading import SensorReading
-from wolkabout.iot.wolk.model.alarm import Alarm
-from wolkabout.iot.wolk.model.actuator_status import ActuatorStatus
-from wolkabout.iot.wolk.mqtt_connectivity_service import MQTTConnectivityService
-from wolkabout.iot.wolk.zerynth_message_queue import ZerynthMessageQueue
+from wolkabout.iot.wolk import wolkabout_protocol_message_factory as wapmf
+from wolkabout.iot.wolk import wolkabout_protocol_message_deserializer as wapmd
+from wolkabout.iot.wolk import zerynth_message_queue as zmq
+from wolkabout.iot.wolk import mqtt_connectivity_service as mcs
+from wolkabout.iot.wolk.model import sensor_reading
+from wolkabout.iot.wolk.model import alarm
+from wolkabout.iot.wolk.model import actuator_status
 
 new_exception(InterfaceNotProvided, Exception)  # noqa
 
@@ -80,10 +76,10 @@ class Wolk:
         :type keep_alive_enabled: bool, optional
         """
         self.device = device
-        self.message_factory = WolkAboutProtocolMessageFactory(device.key)
-        self.message_deserializer = WolkAboutProtocolMessageDeserializer()
-        self.message_queue = ZerynthMessageQueue(message_queue_size)
-        self.connectivity_service = MQTTConnectivityService(
+        self.message_factory = wapmf.WolkAboutProtocolMessageFactory(device.key)
+        self.message_deserializer = wapmd.WolkAboutProtocolMessageDeserializer(device)
+        self.message_queue = zmq.ZerynthMessageQueue(message_queue_size)
+        self.connectivity_service = mcs.MQTTConnectivityService(
             device, self.message_deserializer.get_inbound_topics(), host, port
         )
         self.connectivity_service.set_inbound_message_listener(self._on_inbound_message)
@@ -104,8 +100,8 @@ class Wolk:
         """Connect to the Platform."""
         self.connectivity_service.connect()
         if self.keep_alive_enabled:
-            self.keep_alive_service = timer()
-            self.keep_alive_service.interval(60, self._send_keep_alive)
+            self.keep_alive_service = timers.timer()
+            self.keep_alive_service.interval(60000, self._send_keep_alive)
             self.keep_alive_service.start()
 
     def disconnect(self):
@@ -115,6 +111,7 @@ class Wolk:
             self.keep_alive_service.stop()
 
     def _send_keep_alive(self):
+        print("called ping pub")
         message = self.message_factory.make_from_keep_alive_message()
         self.connectivity_service.publish(message)
 
@@ -125,11 +122,11 @@ class Wolk:
         :param reference: The reference of the sensor
         :type reference: str
         :param value: The value of the sensor reading
-        :type value: int, float, str
+        :type value: bool, int, float, str or tuple of previous types
         :param timestamp: (optional) Unix timestamp - if not provided, Platform will assign one
         :type timestamp: int
         """
-        reading = SensorReading(reference, value, timestamp)
+        reading = sensor_reading.SensorReading(reference, value, timestamp)
         message = self.message_factory.make_from_sensor_reading(reading)
         self.message_queue.put(message)
 
@@ -144,8 +141,8 @@ class Wolk:
         :param timestamp: (optional) Unix timestamp - if not provided, Platform will assign one
         :type timestamp: int
         """
-        alarm = Alarm(reference, active, timestamp)
-        message = self.message_factory.make_from_alarm(alarm)
+        alarm_event = alarm.Alarm(reference, active, timestamp)
+        message = self.message_factory.make_from_alarm(alarm_event)
         self.message_queue.put(message)
 
     def publish(self):
@@ -168,8 +165,8 @@ class Wolk:
             return
 
         state, value = self.actuator_status_provider(reference)
-        actuator_status = ActuatorStatus(reference, state, value)
-        message = self.message_factory.make_from_actuator_status(actuator_status)
+        status = actuator_status.ActuatorStatus(reference, state, value)
+        message = self.message_factory.make_from_actuator_status(status)
 
         if not self.connectivity_service.publish(message):
             self.message_queue.put(message)
@@ -204,7 +201,7 @@ class Wolk:
         :param message: The message received from the Platform
         :type message: Message
         """
-        if self.message_deserializer.is_actuation_command():
+        if self.message_deserializer.is_actuation_command(message):
 
             if not self.actuation_handler or not self.actuator_status_provider:
                 return
@@ -214,7 +211,7 @@ class Wolk:
             self.publish_actuator_status(actuation.reference)
             return
 
-        if self.message_deserializer.is_configuration_command():
+        if self.message_deserializer.is_configuration_command(message):
 
             if not self.configuration_provider or not self.configuration_handler:
                 return
@@ -226,16 +223,35 @@ class Wolk:
             self.publish_configuration()
             return
 
-        if self.message_deserializer.is_keep_alive_response():
+        if self.message_deserializer.is_keep_alive_response(message):
             self.last_platform_timestamp = self.message_deserializer.parse_keep_alive_response(
                 message
             )
 
 
+class Device:
+    """Device model."""
+
+    def __init__(self, key, password, actuator_references=None):
+        """
+        Device identified by key and password, and a list of actuator references.
+
+        :param key: Username used to connect to the platform
+        :type key: str
+        :param password: Password used to authenticate the connection
+        :type password: str
+        :param actuator_references: List of device's actuator references
+        :type actuator_references: List[str]
+        """
+        self.key = key
+        self.password = password
+        self.actuator_references = actuator_references
+
+
 # "Enum" of actuator states
-ACTUATOR_STATE_READY = 0
-ACTUATOR_STATE_BUSY = 1
-ACTUATOR_STATE_ERROR = 2
+ACTUATOR_STATE_READY = "READY"
+ACTUATOR_STATE_BUSY = "BUSY"
+ACTUATOR_STATE_ERROR = "ERROR"
 
 # "Enum" of version number
 VERSION_MAJOR = 2
