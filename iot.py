@@ -38,8 +38,6 @@ from wolkabout.iot.WolkCore import ActuatorState
 from wolkabout.iot.WolkCore import ConfigurationCommand
 from wolkabout.iot.WolkCore import ConfigurationCommandType
 from wolkabout.iot.WolkCore import ConnectivityService
-from wolkabout.iot.WolkCore import FirmwareErrorType
-from wolkabout.iot.WolkCore import FirmwareStatusType
 from wolkabout.iot.WolkCore import InboundMessage
 from wolkabout.iot.WolkCore import InboundMessageDeserializer
 from wolkabout.iot.WolkCore import KeepAliveService
@@ -68,25 +66,25 @@ def print_d(*args):
 class ZerynthMQTTConnectivityService(ConnectivityService.ConnectivityService):
     """
 
-============
-Dependencies
-============
+    ============
+    Dependencies
+    ============
 
-The following classes are implementations of interfaces on which the Wolk class depends
+    The following classes are implementations of interfaces on which the Wolk class depends
 
--------------------------
-MQTT Connectivity Service
--------------------------
+    -------------------------
+    MQTT Connectivity Service
+    -------------------------
 
 
-.. class:: ZerynthMQTTConnectivityService(ConnectivityService.ConnectivityService)
+    .. class:: ZerynthMQTTConnectivityService(ConnectivityService.ConnectivityService)
 
-This class provides the connection to the WolkAbout IoT Platform by implementing the :samp:`ConnectivityService` interface
+    This class provides the connection to the WolkAbout IoT Platform by implementing the :samp:`ConnectivityService` interface
 
-* :samp:`device`: Contains device key, device password and actuator references
-* :samp:`host`: Address of the WolkAbout IoT Platform instance
-* :samp:`port`: Port of WolkAbout IoT Platform instance
-* :samp:`qos`: Quality of Service for MQTT connection (0,1,2), defaults to 0
+    * :samp:`device`: Contains device key, device password and actuator references
+    * :samp:`host`: Address of the WolkAbout IoT Platform instance
+    * :samp:`port`: Port of WolkAbout IoT Platform instance
+    * :samp:`qos`: Quality of Service for MQTT connection (0,1,2), defaults to 0
 
     """
 
@@ -107,53 +105,65 @@ This class provides the connection to the WolkAbout IoT Platform by implementing
 
     def set_inbound_message_listener(self, on_inbound_message):
         """
-.. method:: set_inbound_message_listener(on_inbound_message)
+        .. method:: set_inbound_message_listener(on_inbound_message)
 
-Sets the callback method to handle inbound messages
+        Sets the callback method to handle inbound messages
 
-* :samp:`on_inbound_message`:  The method that handles inbound messages
+        * :samp:`on_inbound_message`:  The method that handles inbound messages
         """
         self.inbound_message_listener = on_inbound_message
 
     def on_mqtt_message(self, client, data):
         """
-.. method:: on_mqtt_message(client, data)
+        .. method:: on_mqtt_message(client, data)
 
-Method that serializes inbound messages and passes them to the inbound message listener
+        Method that serializes inbound messages and passes them to the inbound message listener
 
-* :samp:`client`:  The client that received the message
-* :samp:`data`: The message received
+        * :samp:`client`:  The client that received the message
+        * :samp:`data`: The message received
         """
         if "message" in data:
             channel = data["message"].topic
             payload = data["message"].payload
             print_d(
-                "[D] Received message - Channel: " + channel + " Payload: " + payload
+                "[D] Received message - Channel: "
+                + channel
+                + " Payload: "
+                + payload
             )
             message = InboundMessage.InboundMessage(channel, payload)
             self.inbound_message_listener(message)
 
     def connect(self):
         """
-.. method:: connect()
+        .. method:: connect()
 
-This method establishes the connection to the WolkAbout IoT platform.
-If there are actuators it will subscribe to topics that will contain actuator commands and also starts a loop to handle inbound messages.
-Raises an exception if the connection failed.
-
+        This method establishes the connection to the WolkAbout IoT platform.
+        If there are actuators it will subscribe to topics
+        that will contain actuator commands and also
+        starts a loop to handle inbound messages.
+        Raises an exception if the connection failed.
         """
         if self.connected:
             return
 
-        self.client = mqtt.Client(client_id=self.device.key, clean_session=True)
+        self.client = mqtt.Client(
+            client_id=self.device.key, clean_session=True
+        )
         self.client.set_username_pw(self.device.key, self.device.password)
-        self.client.set_will("lastwill/" + self.device.key, "Gone offline", 2, False)
+        self.client.set_will(
+            "lastwill/" + self.device.key, "Gone offline", 2, False
+        )
 
         try:
             self.client.connect(self.host, keepalive=60, port=self.port)
             self.topics = []
-            self.topics.append(["p2d/configuration_get/d/" + self.device.key, 0])
-            self.topics.append(["p2d/configuration_set/d/" + self.device.key, 0])
+            self.topics.append(
+                ["p2d/configuration_get/d/" + self.device.key, 0]
+            )
+            self.topics.append(
+                ["p2d/configuration_set/d/" + self.device.key, 0]
+            )
             if self.device.actuator_references:
                 for actuator_reference in self.device.actuator_references:
                     topic_get = [
@@ -274,7 +284,9 @@ Returns the first :samp:`message` from :samp:`self.queue` without removing it fr
         return self.queue.peek()
 
 
-class ZerynthOutboundMessageFactory(OutboundMessageFactory.OutboundMessageFactory):
+class ZerynthOutboundMessageFactory(
+    OutboundMessageFactory.OutboundMessageFactory
+):
     """
 
 ------------------------
@@ -339,12 +351,18 @@ Serializes the :samp:`reading` to be sent to the WolkAbout IoT Platform
 
         if reading.timestamp is None:
             return OutboundMessage.OutboundMessage(
-                "d2p/sensor_reading/d/" + self.device_key + "/r/" + reading.reference,
+                "d2p/sensor_reading/d/"
+                + self.device_key
+                + "/r/"
+                + reading.reference,
                 '{ "data" : "' + str(reading.value) + '" }',
             )
         else:
             return OutboundMessage.OutboundMessage(
-                "d2p/sensor_reading/d/" + self.device_key + "/r/" + reading.reference,
+                "d2p/sensor_reading/d/"
+                + self.device_key
+                + "/r/"
+                + reading.reference,
                 '{ "utc" : "'
                 + str(reading.timestamp)
                 + '", "data" : "'
@@ -407,7 +425,10 @@ Serializes the :samp:`actuator` to be sent to the WolkAbout IoT Platform
             actuator.value = actuator.value.replace('\\\\"', '\\"')
 
         return OutboundMessage.OutboundMessage(
-            "d2p/actuator_status/d/" + self.device_key + "/r/" + actuator.reference,
+            "d2p/actuator_status/d/"
+            + self.device_key
+            + "/r/"
+            + actuator.reference,
             '{ "status" : "'
             + actuator.state
             + '" , "value" : "'
@@ -474,7 +495,8 @@ Serializes the device's configuration to be sent to the platform
         values = values[:-1]
 
         message = OutboundMessage.OutboundMessage(
-            "d2p/configuration_get/d/" + self.device_key, '{"values":{' + values + "}}"
+            "d2p/configuration_get/d/" + self.device_key,
+            '{"values":{' + values + "}}",
         )
         return message
 
@@ -518,15 +540,21 @@ Deserializes the :samp:`message` that was received from the WolkAbout IoT Platfo
                 value = True
             elif value == "false":
                 value = False
-            actuation = ActuatorCommand.ActuatorCommand(reference, command_type, value)
+            actuation = ActuatorCommand.ActuatorCommand(
+                reference, command_type, value
+            )
             return actuation
         elif str(command) == "STATUS":
             command_type = ActuatorCommandType.ACTUATOR_COMMAND_TYPE_STATUS
-            actuation = ActuatorCommand.ActuatorCommand(reference, command_type)
+            actuation = ActuatorCommand.ActuatorCommand(
+                reference, command_type
+            )
             return actuation
         else:
             command_type = ActuatorCommandType.ACTUATOR_COMMAND_TYPE_UNKNOWN
-            actuation = ActuatorCommand.ActuatorCommand(reference, command_type)
+            actuation = ActuatorCommand.ActuatorCommand(
+                reference, command_type
+            )
             return actuation
 
     def deserialize_configuration_command(self, message):
@@ -551,7 +579,10 @@ Deserializes the :samp:`message` that was received from the WolkAbout IoT Platfo
 
             temp_dict = dict()
 
-            for (received_reference, received_value) in configuration.values.items():
+            for (
+                received_reference,
+                received_value,
+            ) in configuration.values.items():
                 try:
                     if "." in received_value:
                         temp_value = float(received_value)
@@ -602,14 +633,18 @@ Deserializes the :samp:`message` that was received from the WolkAbout IoT Platfo
 
         elif command == "CURRENT":
 
-            command = ConfigurationCommandType.CONFIGURATION_COMMAND_TYPE_CURRENT
+            command = (
+                ConfigurationCommandType.CONFIGURATION_COMMAND_TYPE_CURRENT
+            )
 
             configuration = ConfigurationCommand.ConfigurationCommand(command)
             return configuration
 
         else:
 
-            command = ConfigurationCommandType.CONFIGURATION_COMMAND_TYPE_UNKNOWN
+            command = (
+                ConfigurationCommandType.CONFIGURATION_COMMAND_TYPE_UNKNOWN
+            )
 
             configuration = ConfigurationCommand.ConfigurationCommand(command)
             return configuration
@@ -648,9 +683,13 @@ This class is a wrapper for the WolkCore class that passes the Zerynth compatibl
         configuration_provider=None,
     ):
         self.device = device
-        self.outbound_message_factory = ZerynthOutboundMessageFactory(device.key)
+        self.outbound_message_factory = ZerynthOutboundMessageFactory(
+            device.key
+        )
         self.outbound_message_queue = outbound_message_queue
-        self.connectivity_service = ZerynthMQTTConnectivityService(device, host, port)
+        self.connectivity_service = ZerynthMQTTConnectivityService(
+            device, host, port
+        )
         self.deserializer = ZerynthInboundMessageDeserializer()
         if device.actuator_references and (
             actuation_handler is None or actuator_status_provider is None
