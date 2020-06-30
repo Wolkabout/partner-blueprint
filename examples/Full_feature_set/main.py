@@ -171,15 +171,15 @@ try:
         print("Publishing readings:")
         if "T" in enabled_feeds.value.split(","):
             temperature = random(15, 40)
-            print("\tTemperature: " + temperature)
+            print("\tTemperature: ", temperature)
             wolk.add_sensor_reading("T", temperature)
         if "P" in enabled_feeds.value.split(","):
-            print("\tPressure: " + pressure)
             pressure = random(980, 1020)
+            print("\tPressure: ", pressure)
             wolk.add_sensor_reading("P", pressure)
         if "H" in enabled_feeds.value.split(","):
             humidity = random(20, 70)
-            print("\tHumidity: " + humidity)
+            print("\tHumidity: ", humidity)
             wolk.add_sensor_reading("T", temperature)
             if humidity >= 60:
                 wolk.add_alarm("HH", True)
@@ -187,12 +187,12 @@ try:
                 wolk.add_alarm("HH", False)
         if "ACL" in enabled_feeds.value.split(","):
             acceleration = (random(0, 10), random(0, 10), random(0, 10))
-            print("\tAcceleration: " + acceleration)
+            print("\tAcceleration: ", acceleration)
             wolk.add_sensor_reading("ACL", acceleration)
 
         # Publishes all stored sensor readings and alarms
         # from the queue to WolkAbout IoT Platform
         wolk.publish()
-        sleep(heart_beat * 1000)
+        sleep(int(heart_beat.value * 1000))
 except Exception as e:
     print("Something went wrong: ", e)
