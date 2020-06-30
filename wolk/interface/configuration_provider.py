@@ -14,20 +14,17 @@
 #   limitations under the License.
 
 
-class ConfigurationProvider:
-    """Configuration Provider Interface."""
+def get_configuration():
+    """
+    Read device configuration.
 
-    def get_configuration(self):
-        """
-        Read device configuration.
+    Returns it as a dictionary with device configuration reference as key,
+    and device configuration value as value.
 
-        Returns it as a dictionary with device configuration reference as key,
-        and device configuration value as value.
+    Must be implemented as non blocking.
+    Must be implemented as thread safe.
 
-        Must be implemented as non blocking.
-        Must be implemented as thread safe.
-
-        :returns: configuration
-        :rtype: dict
-        """
-        pass
+    :returns: configuration
+    :rtype: dict
+    """
+    pass

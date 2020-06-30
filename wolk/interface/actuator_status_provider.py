@@ -14,20 +14,22 @@
 #   limitations under the License.
 
 
-class ActuatorStatusProvider:
-    """Actuator Status Provider Interface."""
+def get_actuator_status(reference):
+    """
+    Read the status of actuator from the device.
 
-    def get_actuator_status(self, reference):
-        """
-        Read the status of actuator from the device.
+    Possible states are:
+    iot.ACTUATOR_STATE_READY,
+    iot.ACTUATOR_STATE_BUSY,
+    iot.ACTUATOR_STATE_ERROR
 
-        Returns it as a tuple containing the ActuatorState and current value.
-        Must be implemented as non blocking.
-        Must be implemented as thread safe.
+    Returns it as a tuple containing the state and current value.
+    Must be implemented as non blocking.
+    Must be implemented as thread safe.
 
-        :param reference: The actuator reference
-        :type reference: str
-        :returns: (state, value)
-        :rtype: (ActuatorState, bool or float or int or str)
-        """
-        pass
+    :param reference: The actuator reference
+    :type reference: str
+    :returns: (state, value)
+    :rtype: (state, bool or float or int or str)
+    """
+    pass

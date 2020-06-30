@@ -3,14 +3,14 @@
 WolkAbout Python Connector library for connecting Zerynth enabled devices to [WolkAbout IoT Platform](https://demo.wolkabout.com/#/login).
 
 Supported protocol(s):
-* JSON_PROTOCOL
+* WolkAbout Protocol
 
 ## Example Usage
 ----
 
 ### Establishing connection with WolkAbout IoT platform
 
-Create a device on WolkAbout IoT platform by importing [Simple-example-deviceTemplate.json](https://github.com/Wolkabout/wolkabout-iot/blob/master/examples/Controlled_publish_period/Simple-example-deviceTemplate.json).
+Create a device on WolkAbout IoT platform by using the provided *Simple example* device type.
 This template fits [Controlled_publish_period](https://github.com/Wolkabout/wolkabout-iot/blob/master/examples/Controlled_publish_period/main.py) example and demonstrates the periodic sending of a temperature sensor reading.
 
 ```python
@@ -58,15 +58,6 @@ wolk.publish()
 wolk.disconnect()
 ```
 
-### Debugging
-
-Display send and received messages with `iot.debug_mode` :
-
-```python
-# Enable debug printing by setting flag to True
-iot.debug_mode = False
-```
-
 ----
 
 ## Advanced features
@@ -81,37 +72,31 @@ actuator_references = ["ACTUATOR_REFERENCE_ONE", "ACTUATOR_REFERENCE_TWO"]
 device = iot.Device(device_key, device_password, actuator_references)
 ```
 
-Additionally, an implementation of `iot.ActuatorStatusProvider` and `iot.ActuationHandler` must be provided to `iot.Wolk`.
+Additionally, an implementation of [actuator_status_provider](./wolk/interface/actuator_status_provider.py) and [actuation_handler](./wolk/interface/actuation_handler.py) must be provided to `iot.Wolk`.
 An example implementation would look something like this:
 
 ```python
-class ActuatorStatusProviderImpl(iot.ActuatorStatusProvider):
-    def get_actuator_status(self, reference):
-        if reference == "ACTUATOR_REFERENCE_ONE":
-            value = digitalRead(LED1)
-            if value == 1:
-                return iot.ACTUATOR_STATE_READY, True
-            else:
-                return iot.ACTUATOR_STATE_READY, False
+def get_actuator_status(reference):
+    if reference == "ACTUATOR_REFERENCE_ONE":
+        return iot.ACTUATOR_STATE_READY, switch_simulator.value
 
 
-class ActuationHandlerImpl(iot.ActuationHandler):
-    def handle_actuation(self, reference, value):
-        if reference == "ACTUATOR_REFERENCE_ONE":
-            print("Setting actuator " + reference + " to value: " + str(value))
-            current_state = digitalRead(LED1)
-            if current_state == 1:
-                if value is False:
-                    digitalWrite(LED1, LOW)
-            else:
-                if value is True:
-                    digitalWrite(LED1, HIGH)
+def handle_actuation(reference, value):
+    if reference == "ACTUATOR_REFERENCE_ONE":
+        print("Setting actuator " + reference + " to value: " + str(value))
+        current_state = digitalRead(LED1)
+        if current_state == 1:
+            if value is False:
+                digitalWrite(LED1, LOW)
+        else:
+            if value is True:
+                digitalWrite(LED1, HIGH)
 
 
 wolk = iot.Wolk(
     device,
-    actuation_handler=ActuationHandlerImpl(),
-    actuator_status_provider=ActuatorStatusProviderImpl()
+    actuation_handler=handle_actuation,
+    actuator_status_provider=get_actuator_status
 )
 ```
 
@@ -124,15 +109,15 @@ wolk.publish_actuator_status("ACTUATOR_REFERENCE_ONE")
 ### Publishing configuration
 
 Similarly to actuators, configuration options require a provider and a handler.
-See `iot.ConfigurationProvider` and `iot.ConfigurationHandler` for implementation details.
+See [configuration_provider](./wolk/interface/configuration_provider.py) and [configuration_handler](./wolk/interface/configuration_handler.py) for implementation details.
 
 Pass these implementations to `iot.Wolk` like so:
 
 ```python
 wolk = iot.Wolk(
     device,
-    configuration_handler=ConfigurationHandlerImpl(),
-    configuration_provider=ConfigurationProviderImpl(),
+    configuration_handler=handle_configuration,
+    configuration_provider=get_configuration,
 )
 ```
 
@@ -147,20 +132,11 @@ wolk_device.publish_configuration()
 WolkAbout Python Connector provides a mechanism for persisting data in situations where readings can not be sent to WolkAbout IoT platform.
 
 Persisted readings are sent to WolkAbout IoT platform once connection is established.
-Data persistence mechanism used **by default** stores data in-memory.
+Data persistence mechanism used by default stores data in-memory.
 
 The number of messages stored in memory by default is 100. This number can be changed like so:
 
 ```python
-wolk = iot.Wolk(device, outbound_message_queue=iot.ZerynthOutboundMessageQueue(message_count))
+wolk = iot.Wolk(device, message_queue_size=100)
 wolk.connect()
 ```
-
-In cases when provided in-memory persistence is suboptimal, one can use custom persistence by implementing `iot.OutboundMessageQueue`,
-and forwarding it to the constructor in the following manner:
-
-```python
-wolk = iot.Wolk(device, outbound_message_queue=custom_queue)
-wolk.connect()
-```
-For more info on persistence mechanism see `iot.OutboundMessageQueue` class

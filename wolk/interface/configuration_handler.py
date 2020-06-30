@@ -14,18 +14,15 @@
 #   limitations under the License.
 
 
-class ConfigurationHandler:
-    """Configuration Handler Interface."""
+def handle_configuration(configuration):
+    """
+    Handle incoming configuration commands.
 
-    def handle_configuration(self, configuration):
-        """
-        Handle incoming configuration commands.
+    Updates device's configuration with received configuration values.
+    Must be implemented as non blocking.
+    Must be implemented as thread safe.
 
-        Updates device's configuration with received configuration values.
-        Must be implemented as non blocking.
-        Must be implemented as thread safe.
-
-        :param configuration: Holds the command and a dictionary of configuration key/value pairs
-        :type configuration: ConfigurationCommand
-        """
-        pass
+    :param configuration: Holds the command and a dictionary of configuration key/value pairs
+    :type configuration: dict
+    """
+    pass

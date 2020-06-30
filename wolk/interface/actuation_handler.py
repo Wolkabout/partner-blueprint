@@ -14,20 +14,17 @@
 #   limitations under the License.
 
 
-class ActuationHandler:
-    """Actuation Handler."""
+def handle_actuation(reference, value):
+    """
+    Handle incoming actuation commands.
 
-    def handle_actuation(self, reference, value):
-        """
-        Handle incoming actuation commands.
+    This method should pass the new value for the actuator on the device.
+    Must be implemented as non blocking.
+    Must be implemented as thread safe.
 
-        This method should pass the new value for the actuator on the device.
-        Must be implemented as non blocking.
-        Must be implemented as thread safe.
-
-        :param reference: The reference of the actuator
-        :type reference: str
-        :param value: The value to which to set the actuator
-        :type value: int, float, string
-        """
-        pass
+    :param reference: The reference of the actuator
+    :type reference: str
+    :param value: The value to which to set the actuator
+    :type value: bool or int or float or str
+    """
+    pass
