@@ -1,3 +1,4 @@
+"""Alarm event as defined on the Platform."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,23 +13,19 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    Alarm as defined in the device template.
-"""
-
 
 class Alarm:
-    """
-        Alarm Class
-    """
+    """Alarm event model."""
 
     def __init__(self, reference, active, timestamp=None):
         """
+        State of a device alarm.
+
         :param reference: Alarm reference
         :type reference: str
         :param active: Current state of the alarm
-        :type active: str
-        :param timestamp: (optional) Unix timestamp - if not provided, platform will assign one upon reception
+        :type active: bool
+        :param timestamp: (optional) UTC timestamp - if not provided, Platform will assign one
         :type timestamp: int
         """
         self.reference = reference

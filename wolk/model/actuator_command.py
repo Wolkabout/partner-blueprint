@@ -1,4 +1,5 @@
-#   Copyright 2018 WolkAbout Technology s.r.o.
+"""Actuator command received from WolkAbout IoT Platform."""
+#   Copyright 2020 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -12,22 +13,18 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    Deserialized representation of the configuration command sent from the platform
-"""
 
+class ActuatorCommand:
+    """Actuator command for reference with value."""
 
-class ConfigurationCommand:
-    """
-        Configuration Command
-    """
-
-    def __init__(self, command, values=None):
+    def __init__(self, reference, value):
         """
-        :param command: The command to be executed
-        :type command: ConfigurationCommandType
-        :param value: The values to be set to
-        :type value: dict
+        Actuator command received.
+
+        :param reference: What actuator is the command for
+        :type reference: str
+        :param value: Value to be set
+        :type value: Union[bool, int, float, str]
         """
-        self.command = command
-        self.values = values
+        self.reference = reference
+        self.value = value

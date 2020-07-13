@@ -36,9 +36,6 @@ actuator_references = ["SW", "SL"]
 publish_period_milliseconds = 5000
 streams.serial()
 
-# Enable debug printing by setting flag to True
-iot.debug_mode = False
-
 
 class ActuatorSimulator:
     def __init__(self, value):
@@ -49,20 +46,39 @@ switch_simulator = ActuatorSimulator(False)
 slider_simulator = ActuatorSimulator(0)
 
 
-class ActuatorStatusProviderImpl(iot.ActuatorStatusProvider):
-    def get_actuator_status(self, reference):
-        if reference == "SW":
-            return iot.ACTUATOR_STATE_READY, switch_simulator.value
-        if reference == "SL":
-            return iot.ACTUATOR_STATE_READY, slider_simulator.value
+def get_actuator_status(reference):
+    """
+    Provide means of reading current actuator state.
+
+    Possible states are:
+    iot.ACTUATOR_STATE_READY,
+    iot.ACTUATOR_STATE_BUSY,
+    iot.ACTUATOR_STATE_ERROR
+
+    :param reference: Actuator for which to get state
+    :type reference: str
+    :return: (state, value)
+    :rtype: (str, bool or int or float or str)
+    """
+    if reference == "SW":
+        return iot.ACTUATOR_STATE_READY, switch_simulator.value
+    if reference == "SL":
+        return iot.ACTUATOR_STATE_READY, slider_simulator.value
 
 
-class ActuationHandlerImpl(iot.ActuationHandler):
-    def handle_actuation(self, reference, value):
-        if reference == "SL":
-            slider_simulator.value = value
-        if reference == "SW":
-            switch_simulator.value = value
+def handle_actuation(reference, value):
+    """
+    Handle incoming actuation command.
+
+    :param reference: Actuator to set value for
+    :type reference: str
+    :param value: Value to set to
+    :type value: bool or int or float or str
+    """
+    if reference == "SL":
+        slider_simulator.value = value
+    if reference == "SW":
+        switch_simulator.value = value
 
 
 class ConfigurationSimulator:
@@ -70,33 +86,39 @@ class ConfigurationSimulator:
         self.value = value
 
 
-config1_simulator = ConfigurationSimulator(0)
-config2_simulator = ConfigurationSimulator(False)
-config3_simulator = ConfigurationSimulator("")
-config4_simulator = ConfigurationSimulator(("", "", ""))
+log_level = ConfigurationSimulator("INFO")
+heart_beat = ConfigurationSimulator(publish_period_milliseconds / 1000)
+enabled_feeds = ConfigurationSimulator("T,P,H,ACL")
 
 
-class ConfigurationProviderImpl(iot.ConfigurationProvider):
-    def get_configuration(self):
-        configurations = dict()
-        configurations["config_1"] = config1_simulator.value
-        configurations["config_2"] = config2_simulator.value
-        configurations["config_3"] = config3_simulator.value
-        configurations["config_4"] = config4_simulator.value
-        return configurations
+def get_configuration():
+    """
+    Return current device configuration option's values.
+
+    :return: configurations
+    :rtype: dict
+    """
+    configurations = {}
+    configurations["LL"] = log_level.value
+    configurations["HB"] = heart_beat.value
+    configurations["EF"] = enabled_feeds.value
+    return configurations
 
 
-class ConfigurationHandlerImpl(iot.ConfigurationHandler):
-    def handle_configuration(self, configuration):
-        for config_reference, config_value in configuration.items():
-            if config_reference == "config_1":
-                config1_simulator.value = config_value
-            if config_reference == "config_2":
-                config2_simulator.value = config_value
-            if config_reference == "config_3":
-                config3_simulator.value = config_value
-            if config_reference == "config_4":
-                config4_simulator.value = config_value
+def handle_configuration(configuration):
+    """
+    Handle incoming configuration command.
+
+    :param configuration: received configuration values
+    :type configuration: dict
+    """
+    for config_reference, config_value in configuration.items():
+        if config_reference == "LL":
+            log_level.value = config_value
+        if config_reference == "HB":
+            heart_beat.value = config_value
+        if config_reference == "EF":
+            enabled_feeds.value = config_value
 
 
 # Connect to WiFi network
@@ -122,11 +144,10 @@ try:
         device,
         host="api-demo.wolkabout.com",
         port=1883,
-        actuation_handler=ActuationHandlerImpl(),
-        actuator_status_provider=ActuatorStatusProviderImpl(),
-        outbound_message_queue=iot.ZerynthOutboundMessageQueue(200),
-        configuration_handler=ConfigurationHandlerImpl(),
-        configuration_provider=ConfigurationProviderImpl(),
+        actuation_handler=handle_actuation,
+        actuator_status_provider=get_actuator_status,
+        configuration_handler=handle_configuration,
+        configuration_provider=get_configuration,
     )
 except Exception as e:
     print("Something went wrong while creating the Wolk instance: ", e)
@@ -147,37 +168,31 @@ wolk.publish_configuration()
 
 try:
     while True:
-        temperature = random(15, 40)
-        pressure = random(980, 1020)
-        humidity = random(20, 70)
-        acceleration = (random(0, 10), random(0, 10), random(0, 10))
-
-        if humidity >= 60:
-            wolk.add_alarm("HH", True)
-        else:
-            wolk.add_alarm("HH", False)
-
-        print(
-            "Publishing readings"
-            + " T: "
-            + str(temperature)
-            + " P: "
-            + str(pressure)
-            + " H: "
-            + str(humidity)
-            + " ACL: "
-            + str(acceleration)
-        )
-
-        # Adds a sensor reading to the queue
-        wolk.add_sensor_reading("T", temperature)
-        wolk.add_sensor_reading("P", pressure)
-        wolk.add_sensor_reading("H", humidity)
-        wolk.add_sensor_reading("ACL", acceleration)
+        print("Publishing readings:")
+        if "T" in enabled_feeds.value.split(","):
+            temperature = random(15, 40)
+            print("\tTemperature: ", temperature)
+            wolk.add_sensor_reading("T", temperature)
+        if "P" in enabled_feeds.value.split(","):
+            pressure = random(980, 1020)
+            print("\tPressure: ", pressure)
+            wolk.add_sensor_reading("P", pressure)
+        if "H" in enabled_feeds.value.split(","):
+            humidity = random(20, 70)
+            print("\tHumidity: ", humidity)
+            wolk.add_sensor_reading("T", temperature)
+            if humidity >= 60:
+                wolk.add_alarm("HH", True)
+            else:
+                wolk.add_alarm("HH", False)
+        if "ACL" in enabled_feeds.value.split(","):
+            acceleration = (random(0, 10), random(0, 10), random(0, 10))
+            print("\tAcceleration: ", acceleration)
+            wolk.add_sensor_reading("ACL", acceleration)
 
         # Publishes all stored sensor readings and alarms
         # from the queue to WolkAbout IoT Platform
         wolk.publish()
-        sleep(publish_period_milliseconds)
+        sleep(int(heart_beat.value * 1000))
 except Exception as e:
     print("Something went wrong: ", e)

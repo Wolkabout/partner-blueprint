@@ -1,3 +1,4 @@
+"""Message format used for communication with the Platform."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,10 +13,18 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    Types of actuator commands received from the platform
-"""
 
-ACTUATOR_COMMAND_TYPE_SET = 0
-ACTUATOR_COMMAND_TYPE_STATUS = 1
-ACTUATOR_COMMAND_TYPE_UNKNOWN = 2
+class Message:
+    """MQTT Message model."""
+
+    def __init__(self, topic, payload):
+        """
+        MQTT Message identified by topic and payload.
+
+        :param topic: Topic where the message will be published to
+        :type topic: str
+        :param payload: Payload of the message that will be published
+        :type payload: str
+        """
+        self.topic = topic
+        self.payload = payload

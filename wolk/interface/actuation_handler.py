@@ -1,3 +1,4 @@
+"""Enable actuation commands from the Platform to the device."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,25 +13,18 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    Holds all data contained from a firmware chunk request response
-"""
 
-
-class FileTransferPacket:
+def handle_actuation(reference, value):
     """
-        File Transfer Packet
-    """
+    Handle incoming actuation commands.
 
-    def __init__(self, previous_hash, data, current_hash):
-        """
-        :param previous_hash: Hash of the previous chunk
-        :type previous_hash: bytes
-        :param data: The requested chunk
-        :type data: bytes
-        :param current_hash: Hash of the current chunk
-        :type current_hash: bytes
-        """
-        self.previous_hash = previous_hash
-        self.data = data
-        self.current_hash = current_hash
+    This method should pass the new value for the actuator on the device.
+    Must be implemented as non blocking.
+    Must be implemented as thread safe.
+
+    :param reference: The reference of the actuator
+    :type reference: str
+    :param value: The value to which to set the actuator
+    :type value: bool or int or float or str
+    """
+    pass

@@ -1,3 +1,4 @@
+"""Enable configuration commands from the Platform to the device."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,33 +13,16 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    Should be implemented to provide means of storing messages before they are sent to the platform
-"""
 
-
-class OutboundMessageQueue:
+def handle_configuration(configuration):
     """
-        Outbound Message Queue Interface
+    Handle incoming configuration commands.
+
+    Updates device's configuration with received configuration values.
+    Must be implemented as non blocking.
+    Must be implemented as thread safe.
+
+    :param configuration: Holds the command and a dictionary of configuration key/value pairs
+    :type configuration: dict
     """
-
-    def put(self, message):
-        """
-        :param message: Message to be stored
-        :type message: OutboundMessage
-        """
-        pass
-
-    def get(self):
-        """
-        :returns: message
-        :rtype: OutboundMessage
-        """
-        pass
-
-    def peek(self):
-        """
-        :returns: message
-        :rtype: OutboundMessage
-        """
-        pass
+    pass

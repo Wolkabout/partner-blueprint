@@ -1,3 +1,4 @@
+"""Provide means of storing messages before they are sent to the Platform."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,25 +13,33 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    Sensor as defined in the device manifest
-"""
 
+class MessageQueue:
+    """Message Queue Interface."""
 
-class SensorReading:
-    """
-        Sensor Reading Class
-    """
-
-    def __init__(self, reference, value, timestamp=None):
+    def put(self, message):
         """
-        :param reference: The reference of the sensor
-        :type reference: str
-        :param value: The value of the reading
-        :type value: int, float, str
-        :param timestamp: (optional) Unix timestamp - if not provided, platform will assign one upon reception
-        :type timestamp: int
+        Place a message into storage.
+
+        :param message: Message to be stored
+        :type message: Message
         """
-        self.reference = reference
-        self.value = value
-        self.timestamp = timestamp
+        pass
+
+    def get(self):
+        """
+        Get a message from storage by removing it.
+
+        :returns: message
+        :rtype: Message
+        """
+        pass
+
+    def peek(self):
+        """
+        Get a message from storage but not remove it.
+
+        :returns: message
+        :rtype: Message
+        """
+        pass
