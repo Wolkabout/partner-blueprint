@@ -200,3 +200,12 @@ class WolkAboutProtocolMessageFactory(message_factory.MessageFactory):
         payload = {"values": configuration}
 
         return message.Message(topic, json.dumps(payload))
+
+    def make_from_ping_keep_alive_message(self):
+        """
+        Serialize a ping keep alive message.
+
+        :returns: message
+        :rtype: Message
+        """
+        return message.Message(self.KEEP_ALIVE + self.device_key, None)

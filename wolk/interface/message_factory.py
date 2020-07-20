@@ -50,7 +50,7 @@ class MessageFactory:
         """
         pass
 
-    def make_from_keep_alive_message(self):
+    def make_from_ping_keep_alive_message(self):
         """
         Serialize a keep alive message.
 

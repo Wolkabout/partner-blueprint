@@ -100,7 +100,7 @@ def get_configuration():
     """
     configurations = {}
     configurations["LL"] = log_level.value
-    configurations["HB"] = heart_beat.value
+    configurations["HB"] = int(heart_beat.value)
     configurations["EF"] = enabled_feeds.value
     return configurations
 

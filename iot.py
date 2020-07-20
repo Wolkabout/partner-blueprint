@@ -1,4 +1,17 @@
-"""WolkAbout Python Connector library for connecting Zerynth devices to `WolkAbout IoT Platform <https://demo.wolkabout.com/>`_."""
+"""
+.. module:: iot
+
+WolkAbout IoT Platform Library
+******************************
+
+WolkAbout IoT Platform is an IoT application enablement platform that
+allows users to easily and securely connect, manage, monitor and control
+disparate devices, transform real-time readings into meaningful data and
+combine different devices and services into
+a complete IoT solution: `WolkAbout IoT Platform <https://wolkabout.com/>`_
+  
+
+"""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,16 +43,34 @@ def tuple(mlist):  # noqa
     pass
 
 
-debug_mode = False
+class Device:
+
+    def __init__(self, key, password, actuator_references=None):
+        """
+Device
+------
+
+The :samp:`Device` class contains all the required information for connecting
+to the WolkAbout IoT Platform.
+
+.. method:: Device(key, password, actuator_references=None)
+
+* :samp:`key` - The device key obtained when creating the device on WolkAbout IoT platform
+* :samp:`password` - The device password obtained when creating the device on WolkAbout IoT platform
+* :samp:`actuator_references` - A list of actuator references defined in the device type on WolkAbout IoT Platform
+        """
+        self.key = key
+        self.password = password
+        self.actuator_references = actuator_references
 
 
-def _print_d(*args):
-    if debug_mode:
-        print(*args)
+# "Enum" of actuator states
+ACTUATOR_STATE_READY = "READY"
+ACTUATOR_STATE_BUSY = "BUSY"
+ACTUATOR_STATE_ERROR = "ERROR"
 
 
 class Wolk:
-    """Wrapper for the whole library."""
 
     def __init__(
         self,
@@ -54,26 +85,65 @@ class Wolk:
         keep_alive_enabled=True,
     ):
         """
-        Wrap together all functionality.
 
-        :param device: Device containing key, password and actuator references
-        :type device: Device
-        :param host: Address of the MQTT broker of the Platform - defaults to demo instance
-        :type host: str, optional
-        :param port: Port of the MQTT broker
-        :type port: int, optional
-        :param actuation_handler: Actuation handler
-        :type actuation_handler: None, optional
-        :param actuator_status_provider: Actuator status provider
-        :type actuator_status_provider: None, optional
-        :param configuration_handler: Configuration handler
-        :type configuration_handler: None, optional
-        :param configuration_provider: Configuration provider
-        :type configuration_provider: None, optional
-        :param message_queue_size: Number of reading to store in memory
-        :type message_queue_size: int, optional
-        :param keep_alive_enabled: Periodically publish keep alive message
-        :type keep_alive_enabled: bool, optional
+Wolk
+----
+
+The :samp:`Wolk` class wraps all the functionality of the library.
+
+.. method:: Wolk(device, host="api-demo.wolkabout.com", port=1883, actuation_handler=None, actuator_status_provider=None, configuration_handler=None, configuration_provider=None, message_queue_size=100, keep_alive_enabled=True)
+
+* :samp:`device`: Device containing key, password and actuator references
+* :samp:`host`: Address of the MQTT broker of the Platform - defaults to demo instance
+* :samp:`port`: Port of the MQTT broker - defaults to demo instance's port
+* :samp:`actuation_handler`: Actuation handler function, optional
+
+    .. method:: actuation_handler(reference, value)
+
+    Implement this function in order to execute actuation commands issued from the Platform.
+
+    This function will try to set the actuator, identified by :samp:`reference`, to the :samp:`value` specified by the Platform.
+
+* :samp:`actuator_status_provider`: Actuator status provider function, optional
+
+    .. method:: actuator_status_provider(reference)
+
+    Implement this function in order to provide information about the current status of the actuator to the Platform.
+
+    This function will return the current actuator :samp:`state` and :samp:`value`, identified by :samp:`reference`, to the Platform.
+
+    The possible `states` are::
+
+        iot.ACTUATOR_STATE_READY
+        iot.ACTUATOR_STATE_BUSY
+        iot.ACTUATOR_STATE_ERROR
+
+    The method should return something like this::
+
+        return (iot.ACTUATOR_STATE_READY, value)
+
+* :samp:`configuration_handler`: Configuration handler function, optional
+
+    .. method:: configuration_handler(configuration)
+
+    Implement this function in order to handle configuration commands issued from the Platform.
+
+    This function should update device configuration with received configuration values.
+
+        * :samp:`configuration` - Dictionary that contains reference:value pairs
+
+* :samp:`configuration_provider`: Configuration provider function, optional
+
+    .. method:: configuration_provider()
+
+    Implement this function to provide information about the current configuration settings to the Platform.
+
+    Reads current device configuration and returns it as a dictionary with device configuration reference as the key, and device configuration value as the value.
+
+* :samp:`message_queue_size`: Number of reading to store in memory, defaults to 100
+* :samp:`keep_alive_enabled`: Periodically publish keep alive message, default True
+
+  
         """
         self.device = device
         self.message_factory = wapmf.WolkAboutProtocolMessageFactory(device.key)
@@ -97,7 +167,12 @@ class Wolk:
             raise InterfaceNotProvided
 
     def connect(self):
-        """Connect to the Platform."""
+        """
+.. method:: Wolk.connect()
+Connect to the Platform.
+
+
+        """
         self.connectivity_service.connect()
         if self.keep_alive_enabled:
             self.keep_alive_service = timers.timer()
@@ -105,26 +180,30 @@ class Wolk:
             self.keep_alive_service.start()
 
     def disconnect(self):
-        """Disconnect from the Platform."""
+        """
+.. method:: Wolk.disconnect()
+Disconnect from the Platform.
+
+
+        """
         self.connectivity_service.disconnect()
         if self.keep_alive_enabled:
             self.keep_alive_service.stop()
 
     def _send_keep_alive(self):
-        print("called ping pub")
-        message = self.message_factory.make_from_keep_alive_message()
+        message = self.message_factory.make_from_ping_keep_alive_message()
         self.connectivity_service.publish(message)
 
     def add_sensor_reading(self, reference, value, timestamp=None):
         """
-        Add a sensor reading into storage.
+.. method:: Wolk.add_sensor_reading(reference, value, timestamp=None)
+Add a sensor reading into storage.
 
-        :param reference: The reference of the sensor
-        :type reference: str
-        :param value: The value of the sensor reading
-        :type value: bool, int, float, str or tuple of previous types
-        :param timestamp: (optional) Unix timestamp - if not provided, Platform will assign one
-        :type timestamp: int
+* :samp:`reference`: The reference of the sensor
+* :samp:`value`: The value of the sensor reading
+* :samp:`timestamp`: (optional) Unix timestamp - if not provided, Platform will assign one
+
+
         """
         reading = sensor_reading.SensorReading(reference, value, timestamp)
         message = self.message_factory.make_from_sensor_reading(reading)
@@ -132,21 +211,26 @@ class Wolk:
 
     def add_alarm(self, reference, active, timestamp=None):
         """
-        Add an alarm event into storage.
+.. method:: Wolk.add_alarm(reference, active, timestamp=None)
+Add an alarm event into storage.
 
-        :param reference: The reference of the alarm
-        :type reference: str
-        :param active: Current state of the alarm
-        :type active: bool
-        :param timestamp: (optional) Unix timestamp - if not provided, Platform will assign one
-        :type timestamp: int
+* :samp:`reference`: The reference of the alarm
+* :samp:`active`: Current state of the alarm
+* :samp:`timestamp`: (optional) Unix timestamp - if not provided, Platform will assign one
+
+
         """
         alarm_event = alarm.Alarm(reference, active, timestamp)
         message = self.message_factory.make_from_alarm(alarm_event)
         self.message_queue.put(message)
 
     def publish(self):
-        """Publish all currently stored messages to the Platform."""
+        """
+.. method:: Wolk.publish()
+Publish all currently stored messages to the Platform.
+
+
+        """
         while True:
             message = self.message_queue.peek()
             if message is None:
@@ -156,10 +240,12 @@ class Wolk:
 
     def publish_actuator_status(self, reference):
         """
-        Publish the current actuator status to the Platform.
+.. method:: Wolk.publish_actuator_status(reference)
+Publish the current actuator status to the Platform.
 
-        :param reference: The reference of the actuator
-        :type reference: str
+* :samp:`reference` The reference of the actuator
+
+
         """
         if self.actuator_status_provider is None:
             return
@@ -172,7 +258,12 @@ class Wolk:
             self.message_queue.put(message)
 
     def publish_configuration(self):
-        """Publish the current device configuration to the Platform."""
+        """
+.. method:: Wolk.publish_configuration()
+Publish the current device configuration to the Platform.
+
+
+        """
         if self.configuration_handler is None:
             return
 
@@ -183,24 +274,17 @@ class Wolk:
 
     def request_timestamp(self):
         """
-        Return last received Platform timestamp.
+.. method:: Wolk.request_timestamp()
+Return last received Platform timestamp.
 
-        If keep alive service is not enabled, this will always be None.
+If keep alive service is not enabled, this will always be None.
 
-        :return: UTC timestamp in milliseconds or None
-        :rtype: int, None
+:return: UTC timestamp in milliseconds or None
+:rtype: int, None
         """
         return self.last_platform_timestamp
 
     def _on_inbound_message(self, message):
-        """
-        Handle inbound messages.
-
-        .. note:: Pass this function to the implementation of ConnectivityService
-
-        :param message: The message received from the Platform
-        :type message: Message
-        """
         if self.message_deserializer.is_actuation_command(message):
 
             if not self.actuation_handler or not self.actuator_status_provider:
@@ -228,30 +312,6 @@ class Wolk:
                 message
             )
 
-
-class Device:
-    """Device model."""
-
-    def __init__(self, key, password, actuator_references=None):
-        """
-        Device identified by key and password, and a list of actuator references.
-
-        :param key: Username used to connect to the platform
-        :type key: str
-        :param password: Password used to authenticate the connection
-        :type password: str
-        :param actuator_references: List of device's actuator references
-        :type actuator_references: List[str]
-        """
-        self.key = key
-        self.password = password
-        self.actuator_references = actuator_references
-
-
-# "Enum" of actuator states
-ACTUATOR_STATE_READY = "READY"
-ACTUATOR_STATE_BUSY = "BUSY"
-ACTUATOR_STATE_ERROR = "ERROR"
 
 # "Enum" of version number
 VERSION_MAJOR = 2
