@@ -1,3 +1,4 @@
+"""Provide means of reading device's current configuration options."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,22 +13,18 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    Inbound Messages that get received from the platform
-"""
 
-
-class InboundMessage:
+def get_configuration():
     """
-        Inbound Messages class
-    """
+    Read device configuration.
 
-    def __init__(self, channel, payload):
-        """
-        :param channel: Defines the channel where the message was published to
-        :type channel: str
-        :param payload: Defines the payload of the message that was published to the channel
-        :type payload: str
-        """
-        self.channel = channel
-        self.payload = payload
+    Returns it as a dictionary with device configuration reference as key,
+    and device configuration value as value.
+
+    Must be implemented as non blocking.
+    Must be implemented as thread safe.
+
+    :returns: configuration
+    :rtype: dict
+    """
+    pass

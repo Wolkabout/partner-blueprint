@@ -1,3 +1,4 @@
+"""Holds information about a sensor reading."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,25 +13,21 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    ActuatorStatusProvider reads the status of your device's actuators. This information is passed on to the platform.
-"""
 
+class SensorReading:
+    """Sensor reading model."""
 
-class ActuatorStatusProvider:
-    """
-        Actuator Status Provider Interface
-    """
-
-    def get_actuator_status(self, reference):
+    def __init__(self, reference, value, timestamp=None):
         """
-        Reads the status of actuator from the device
-        and returns it as a tuple containing the ActuatorState and current value.
-        Must be implemented as non blocking.
-        Must be implemented as thread safe.
-        :param reference:
+        Information about a sensor reading.
+
+        :param reference: The reference of the sensor
         :type reference: str
-        :returns: (state, value)
-        :rtype: (ActuatorState, int/str)
+        :param value: The value of the reading
+        :type value: bool or int or float or str or tuple of previous types
+        :param timestamp: (optional) Unix timestamp - if not provided, Platform will assign one
+        :type timestamp: int
         """
-        pass
+        self.reference = reference
+        self.value = value
+        self.timestamp = timestamp

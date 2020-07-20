@@ -1,0 +1,13 @@
+---
+description: Module for connecting to WolkAbout IoT Platform
+fullname: lib.wolkabout.iot
+info:
+    chip_manufacturer: '-'
+    chip_name: '-'
+    name: Zerynth Wolkabout IoT Library
+    type: IoT Cloud
+keywords:
+- WolkAbout
+- IoT
+title: WolkAbout IoT
+...

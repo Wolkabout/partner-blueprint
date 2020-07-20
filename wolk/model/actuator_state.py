@@ -1,3 +1,4 @@
+"""Contains the state of the Actuator."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,22 +13,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    Contains the status of the firmware update process.
-"""
 
+class ActuatorState:
+    """Actuator states as defined on WolkAbout IoT Platform."""
 
-class FirmwareStatus:
-    """
-    Firmware Status class
-    """
-
-    def __init__(self, status, error=None):
-        """
-        :param status: The status of the firmware update process
-        :type status: FirmwareStatusType
-        :param error: The type of error that occured
-        :type error: FirmwareErrorType
-        """
-        self.status = status
-        self.error = error
+    READY = "READY"
+    BUSY = "BUSY"
+    ERROR = "ERROR"

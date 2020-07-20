@@ -1,3 +1,4 @@
+"""Contains the status of the Actuator."""
 #   Copyright 2018 WolkAbout Technology s.r.o.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,26 +13,21 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""
-    ConfigurationProvider reads the device's configuration. This information is passed on to the platform.
-"""
 
+class ActuatorStatus:
+    """Actuator Status class."""
 
-class ConfigurationProvider:
-    """
-        Configuration Provider Interface
-    """
-
-    def get_configuration(self):
+    def __init__(self, reference, state, value):
         """
-        Reads device configuration and returns it as a dictionary
-        with device configuration reference as key,
-        and device configuration value as value.
+        State of a device actuator.
 
-        Must be implemented as non blocking.
-        Must be implemented as thread safe.
-
-        :returns: configuration
-        :rtype: dict
+        :param reference: The reference of the actuator
+        :type reference: str
+        :param state: The actuators current state
+        :type state: ActuatorState
+        :param value: The actuators current value
+        :type value: bool or int or float or string
         """
-        pass
+        self.reference = reference
+        self.state = state
+        self.value = value
