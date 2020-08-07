@@ -28,7 +28,7 @@ wolk.connect()
 Connecting to a different WolkAbout IoT platform instance is achieved in the following manner:
 
 ```python
-wolk = iot.Wolk(device, host="api-demo.wolkabout.com", port=1883)
+wolk = iot.Wolk(device, host="api-demo.wolkabout.com", port=2883)
 wolk.connect()
 ```
 

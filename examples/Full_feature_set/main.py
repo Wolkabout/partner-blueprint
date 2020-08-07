@@ -143,7 +143,7 @@ try:
     wolk = iot.Wolk(
         device,
         host="api-demo.wolkabout.com",
-        port=1883,
+        port=2883,
         actuation_handler=handle_actuation,
         actuator_status_provider=get_actuator_status,
         configuration_handler=handle_configuration,

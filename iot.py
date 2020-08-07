@@ -76,7 +76,7 @@ class Wolk:
         self,
         device,
         host="api-demo.wolkabout.com",
-        port=1883,
+        port=2883,
         actuation_handler=None,
         actuator_status_provider=None,
         configuration_handler=None,
@@ -91,7 +91,7 @@ Wolk
 
 The :samp:`Wolk` class wraps all the functionality of the library.
 
-.. method:: Wolk(device, host="api-demo.wolkabout.com", port=1883, actuation_handler=None, actuator_status_provider=None, configuration_handler=None, configuration_provider=None, message_queue_size=100, keep_alive_enabled=True)
+.. method:: Wolk(device, host="api-demo.wolkabout.com", port=2883, actuation_handler=None, actuator_status_provider=None, configuration_handler=None, configuration_provider=None, message_queue_size=100, keep_alive_enabled=True)
 
 * :samp:`device`: Device containing key, password and actuator references
 * :samp:`host`: Address of the MQTT broker of the Platform - defaults to demo instance
